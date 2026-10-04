@@ -1,0 +1,140 @@
+{
+  "drop_rates": [
+    100,
+    0,
+    0,
+    0
+  ],
+  "gacha_promo_chance": -1,
+  "gacha": [
+    {
+      "gacha_id": "GachaSPProduct1",
+      "cost": 5,
+      "gacha_content": [
+        {
+          "quantity": 1,
+          "reward": "MORTY",
+          "parameters": null
+        },
+        {
+          "quantity": 2,
+          "reward": "MORTY",
+          "parameters": {
+            "division_guarantee": 2
+          }
+        },
+        {
+          "quantity": 1,
+          "reward": "ITEM",
+          "parameters": {
+            "ids": [
+              "ItemMortyChip",
+              "ItemPureSerum",
+              "ItemHalzinger",
+              "ItemPureHalzinger",
+              "ItemFullRecover",
+              "ItemMrMeeseek",
+              "ItemMegaSeedAttack",
+              "ItemMegaSeedDefence",
+              "ItemMegaSeedSpeed",
+              "ItemMegaSeedLevelUp"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "gacha_id": "GachaSPProduct2",
+      "cost": 15,
+      "gacha_content": [
+        {
+          "quantity": 3,
+          "reward": "MORTY",
+          "parameters": null
+        },
+        {
+          "quantity": 3,
+          "reward": "MORTY",
+          "parameters": {
+            "division_chances": 2
+          }
+        },
+        {
+          "quantity": 1,
+          "reward": "MORTY",
+          "parameters": {
+            "division_chances": 3
+          }
+        },
+        {
+          "quantity": 4,
+          "reward": "ITEM",
+          "parameters": {
+            "ids": [
+              "ItemMortyChip",
+              "ItemPureSerum",
+              "ItemHalzinger",
+              "ItemPureHalzinger",
+              "ItemFullRecover",
+              "ItemMrMeeseek",
+              "ItemMegaSeedAttack",
+              "ItemMegaSeedDefence",
+              "ItemMegaSeedSpeed",
+              "ItemMegaSeedLevelUp"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "gacha_id": "GachaSPProduct3",
+      "cost": 40,
+      "gacha_content": [
+        {
+          "quantity": 10,
+          "reward": "ITEM",
+          "parameters": {
+            "ids": [
+              "ItemMortyChip",
+              "ItemPureSerum",
+              "ItemHalzinger",
+              "ItemPureHalzinger",
+              "ItemFullRecover",
+              "ItemMrMeeseek",
+              "ItemMegaSeedAttack",
+              "ItemMegaSeedDefence",
+              "ItemMegaSeedSpeed",
+              "ItemMegaSeedLevelUp"
+            ]
+          }
+        },
+        {
+          "quantity": 3,
+          "reward": "MORTY",
+          "parameters": null
+        },
+        {
+          "quantity": 4,
+          "reward": "MORTY",
+          "parameters": {
+            "division_guarantee": 2
+          }
+        },
+        {
+          "quantity": 2,
+          "reward": "MORTY",
+          "parameters": {
+            "division_guarantee": 3
+          }
+        },
+        {
+          "quantity": 1,
+          "reward": "MORTY",
+          "parameters": {
+            "division_guarantee": 4
+          }
+        }
+      ]
+    }
+  ]
+}

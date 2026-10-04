@@ -1,0 +1,881 @@
+{
+ "anatomyparkbundle2": {
+  "Texture2D": 90,
+  "Sprite": 90,
+  "AssetBundle": 1
+ },
+ "anime101": {
+  "Texture2D": 69,
+  "Sprite": 69,
+  "AssetBundle": 1
+ },
+ "anime102": {
+  "Texture2D": 63,
+  "Sprite": 63,
+  "AssetBundle": 1
+ },
+ "anime103": {
+  "Texture2D": 63,
+  "Sprite": 63,
+  "AssetBundle": 1
+ },
+ "anime104": {
+  "Sprite": 91,
+  "Texture2D": 91,
+  "AssetBundle": 1
+ },
+ "anime105": {
+  "Texture2D": 64,
+  "Sprite": 64,
+  "AssetBundle": 1
+ },
+ "anime106": {
+  "Sprite": 63,
+  "Texture2D": 63,
+  "AssetBundle": 1
+ },
+ "anime107": {
+  "Texture2D": 63,
+  "Sprite": 63,
+  "AssetBundle": 1
+ },
+ "anime108": {
+  "Texture2D": 91,
+  "Sprite": 91,
+  "AssetBundle": 1
+ },
+ "anime109": {
+  "Sprite": 65,
+  "Texture2D": 65,
+  "AssetBundle": 1
+ },
+ "anime110": {
+  "Texture2D": 63,
+  "Sprite": 63,
+  "AssetBundle": 1
+ },
+ "anime110raidbossgiantbug": {
+  "Sprite": 29,
+  "Texture2D": 29,
+  "AssetBundle": 1
+ },
+ "appdata": {
+  "TextAsset": 2,
+  "AssetBundle": 1
+ },
+ "au001": {
+  "Sprite": 75,
+  "Texture2D": 75,
+  "AssetBundle": 1
+ },
+ "au002": {
+  "Texture2D": 75,
+  "Sprite": 75,
+  "AssetBundle": 1
+ },
+ "au003": {
+  "Texture2D": 75,
+  "Sprite": 75,
+  "AssetBundle": 1
+ },
+ "au004": {
+  "Texture2D": 75,
+  "Sprite": 75,
+  "AssetBundle": 1
+ },
+ "au005": {
+  "Sprite": 75,
+  "Texture2D": 75,
+  "AssetBundle": 1
+ },
+ "au006": {
+  "Sprite": 75,
+  "Texture2D": 75,
+  "AssetBundle": 1
+ },
+ "au007": {
+  "Texture2D": 75,
+  "Sprite": 75,
+  "AssetBundle": 1
+ },
+ "au008": {
+  "Sprite": 75,
+  "Texture2D": 75,
+  "AssetBundle": 1
+ },
+ "au009": {
+  "Sprite": 75,
+  "Texture2D": 75,
+  "AssetBundle": 1
+ },
+ "au010": {
+  "Texture2D": 75,
+  "Sprite": 75,
+  "AssetBundle": 1
+ },
+ "au011": {
+  "Sprite": 60,
+  "Texture2D": 60,
+  "AssetBundle": 1
+ },
+ "au012": {
+  "Texture2D": 75,
+  "Sprite": 75,
+  "AssetBundle": 1
+ },
+ "au013": {
+  "Texture2D": 75,
+  "Sprite": 75,
+  "AssetBundle": 1
+ },
+ "au014": {
+  "Sprite": 227,
+  "Texture2D": 227,
+  "AssetBundle": 1
+ },
+ "au015": {
+  "Sprite": 75,
+  "Texture2D": 75,
+  "AssetBundle": 1
+ },
+ "ep301": {
+  "Sprite": 120,
+  "Texture2D": 120,
+  "AssetBundle": 1
+ },
+ "ep302": {
+  "Texture2D": 150,
+  "Sprite": 150,
+  "AssetBundle": 1
+ },
+ "ep303": {
+  "Texture2D": 150,
+  "Sprite": 150,
+  "AssetBundle": 1
+ },
+ "ep304": {
+  "Sprite": 150,
+  "Texture2D": 150,
+  "AssetBundle": 1
+ },
+ "ep305": {
+  "Sprite": 150,
+  "Texture2D": 150,
+  "AssetBundle": 1
+ },
+ "ep306": {
+  "Texture2D": 150,
+  "Sprite": 150,
+  "AssetBundle": 1
+ },
+ "ep307": {
+  "Sprite": 150,
+  "Texture2D": 150,
+  "AssetBundle": 1
+ },
+ "ep308": {
+  "Sprite": 150,
+  "Texture2D": 150,
+  "AssetBundle": 1
+ },
+ "ep309": {
+  "Texture2D": 151,
+  "Sprite": 151,
+  "Shader": 1,
+  "Material": 1,
+  "AssetBundle": 1
+ },
+ "ep310": {
+  "Texture2D": 150,
+  "Sprite": 150,
+  "AssetBundle": 1
+ },
+ "ep401": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep402": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep403": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep404": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep405": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep406": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep407": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep408": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep409": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep410": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep501": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep502": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep503": {
+  "Sprite": 46,
+  "Texture2D": 46,
+  "AssetBundle": 1
+ },
+ "ep504": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep505": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep506": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep507": {
+  "Texture2D": 46,
+  "Sprite": 46,
+  "AssetBundle": 1
+ },
+ "ep508": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep5final": {
+  "Sprite": 90,
+  "Texture2D": 90,
+  "AssetBundle": 1
+ },
+ "ep601": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep602": {
+  "Texture2D": 64,
+  "Sprite": 64,
+  "AssetBundle": 1
+ },
+ "ep603": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep604": {
+  "Texture2D": 46,
+  "Sprite": 46,
+  "AssetBundle": 1
+ },
+ "ep605": {
+  "Sprite": 46,
+  "Texture2D": 46,
+  "AssetBundle": 1
+ },
+ "ep606": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep607": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep608": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep609": {
+  "Sprite": 64,
+  "Texture2D": 64,
+  "AssetBundle": 1
+ },
+ "ep610": {
+  "Sprite": 64,
+  "Texture2D": 64,
+  "AssetBundle": 1
+ },
+ "ep701": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep702": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep703": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep704": {
+  "Sprite": 66,
+  "Texture2D": 66,
+  "AssetBundle": 1
+ },
+ "ep705": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep706": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "ep707": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep708": {
+  "Sprite": 64,
+  "Texture2D": 64,
+  "AssetBundle": 1
+ },
+ "ep709": {
+  "Texture2D": 45,
+  "Sprite": 45,
+  "AssetBundle": 1
+ },
+ "ep710": {
+  "Sprite": 64,
+  "Texture2D": 64,
+  "AssetBundle": 1
+ },
+ "ep801": {
+  "Texture2D": 47,
+  "AnimationClip": 2,
+  "Sprite": 59,
+  "Transform": 18,
+  "Animator": 2,
+  "GameObject": 18,
+  "Material": 1,
+  "SpriteRenderer": 14,
+  "AnimatorController": 2,
+  "AssetBundle": 1,
+  "Shader": 1
+ },
+ "ep802": {
+  "GameObject": 50,
+  "Texture2D": 50,
+  "Sprite": 77,
+  "AnimationClip": 5,
+  "SpriteRenderer": 31,
+  "Transform": 50,
+  "AnimatorController": 5,
+  "Material": 1,
+  "Animator": 4,
+  "MonoScript": 1,
+  "MonoBehaviour": 7,
+  "AssetBundle": 1,
+  "Shader": 1
+ },
+ "ep803": {
+  "Transform": 46,
+  "Texture2D": 67,
+  "Sprite": 96,
+  "GameObject": 46,
+  "SpriteRenderer": 32,
+  "MonoBehaviour": 7,
+  "Material": 1,
+  "AnimationClip": 3,
+  "Animator": 3,
+  "AnimatorController": 3,
+  "MonoScript": 1,
+  "AssetBundle": 1,
+  "Shader": 1
+ },
+ "ep804": {
+  "GameObject": 65,
+  "Texture2D": 68,
+  "SpriteRenderer": 39,
+  "AnimatorController": 5,
+  "Sprite": 95,
+  "Transform": 65,
+  "MonoBehaviour": 5,
+  "AnimationClip": 5,
+  "Material": 1,
+  "MonoScript": 1,
+  "Animator": 5,
+  "AssetBundle": 1,
+  "Shader": 1,
+  "Cubemap": 1
+ },
+ "ep805": {
+  "Sprite": 62,
+  "Transform": 21,
+  "Texture2D": 47,
+  "GameObject": 21,
+  "SpriteRenderer": 17,
+  "AnimationClip": 2,
+  "Material": 1,
+  "Animator": 2,
+  "AssetBundle": 1,
+  "AnimatorController": 2,
+  "Shader": 1
+ },
+ "ep806": {
+  "Texture2D": 47,
+  "SpriteRenderer": 23,
+  "Transform": 31,
+  "AnimatorController": 2,
+  "Sprite": 68,
+  "GameObject": 31,
+  "MonoBehaviour": 4,
+  "Material": 1,
+  "AnimationClip": 2,
+  "Animator": 2,
+  "MonoScript": 1,
+  "AssetBundle": 1,
+  "Shader": 1
+ },
+ "ep807": {
+  "Transform": 81,
+  "Sprite": 99,
+  "GameObject": 81,
+  "AnimationClip": 3,
+  "SpriteRenderer": 51,
+  "MonoBehaviour": 20,
+  "AnimatorController": 3,
+  "Texture2D": 69,
+  "Animator": 5,
+  "Material": 1,
+  "MonoScript": 1,
+  "AssetBundle": 1,
+  "Shader": 1
+ },
+ "ep808": {
+  "Sprite": 82,
+  "SpriteRenderer": 37,
+  "GameObject": 72,
+  "Transform": 72,
+  "Texture2D": 48,
+  "MonoBehaviour": 15,
+  "AnimationClip": 3,
+  "Material": 1,
+  "AnimatorController": 3,
+  "Animator": 3,
+  "MonoScript": 1,
+  "AssetBundle": 1,
+  "Shader": 1
+ },
+ "ep809": {
+  "SpriteRenderer": 19,
+  "Sprite": 64,
+  "Transform": 31,
+  "GameObject": 31,
+  "Texture2D": 47,
+  "MonoBehaviour": 4,
+  "AnimatorController": 2,
+  "Material": 1,
+  "AnimationClip": 2,
+  "MonoScript": 1,
+  "AssetBundle": 1,
+  "Animator": 2,
+  "Shader": 1
+ },
+ "ep810": {
+  "Transform": 26,
+  "Sprite": 65,
+  "GameObject": 26,
+  "SpriteRenderer": 20,
+  "Texture2D": 47,
+  "Material": 1,
+  "Animator": 2,
+  "MonoScript": 1,
+  "AnimationClip": 2,
+  "AssetBundle": 1,
+  "Shader": 1,
+  "AnimatorController": 2,
+  "MonoBehaviour": 1
+ },
+ "froopylandbundle2": {
+  "Texture2D": 90,
+  "Sprite": 90,
+  "AssetBundle": 1
+ },
+ "mpdata": {
+  "TextAsset": 15,
+  "AssetBundle": 1
+ },
+ "preload": {
+  "Sprite": 154,
+  "Texture2D": 154,
+  "AudioClip": 214,
+  "AssetBundle": 1
+ },
+ "psh001": {
+  "Sprite": 23,
+  "Texture2D": 23,
+  "AssetBundle": 1
+ },
+ "psh002": {
+  "Texture2D": 19,
+  "Sprite": 19,
+  "AssetBundle": 1
+ },
+ "psh003": {
+  "Sprite": 29,
+  "Texture2D": 29,
+  "AssetBundle": 1
+ },
+ "psh004": {
+  "Sprite": 92,
+  "Texture2D": 92,
+  "AssetBundle": 1
+ },
+ "psh005": {
+  "Sprite": 75,
+  "Texture2D": 75,
+  "AssetBundle": 1
+ },
+ "psh006": {
+  "Texture2D": 93,
+  "Sprite": 93,
+  "AssetBundle": 1
+ },
+ "psh008": {
+  "Sprite": 16,
+  "Texture2D": 16,
+  "AssetBundle": 1
+ },
+ "psh009": {
+  "Texture2D": 90,
+  "Sprite": 90,
+  "AssetBundle": 1
+ },
+ "psh010": {
+  "Texture2D": 90,
+  "Sprite": 90,
+  "AssetBundle": 1
+ },
+ "psh011": {
+  "Sprite": 15,
+  "Texture2D": 15,
+  "AssetBundle": 1
+ },
+ "psh012": {
+  "Texture2D": 4,
+  "Sprite": 4,
+  "AssetBundle": 1
+ },
+ "psh013": {
+  "Texture2D": 21,
+  "Sprite": 21,
+  "AssetBundle": 1
+ },
+ "psh014": {
+  "Sprite": 19,
+  "Texture2D": 19,
+  "AssetBundle": 1
+ },
+ "psh015": {
+  "Texture2D": 19,
+  "Sprite": 19,
+  "AssetBundle": 1
+ },
+ "psh016": {
+  "Sprite": 5,
+  "Texture2D": 5,
+  "AssetBundle": 1
+ },
+ "psh017": {
+  "Texture2D": 30,
+  "Sprite": 30,
+  "AssetBundle": 1
+ },
+ "psh018": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "psh019": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "psh020": {
+  "Sprite": 45,
+  "Texture2D": 45,
+  "AssetBundle": 1
+ },
+ "psh021": {
+  "Texture2D": 1,
+  "Sprite": 1,
+  "AssetBundle": 1
+ },
+ "psh022": {
+  "Texture2D": 8,
+  "Sprite": 8,
+  "AssetBundle": 1
+ },
+ "psh023": {
+  "Sprite": 5,
+  "Texture2D": 5,
+  "AssetBundle": 1
+ },
+ "psh024": {
+  "Sprite": 5,
+  "Texture2D": 5,
+  "AssetBundle": 1
+ },
+ "psh025": {
+  "Sprite": 90,
+  "Texture2D": 90,
+  "AssetBundle": 1
+ },
+ "psh026": {
+  "AssetBundle": 1,
+  "Sprite": 1,
+  "Texture2D": 1
+ },
+ "psh027": {
+  "GameObject": 36,
+  "Sprite": 32,
+  "Transform": 36,
+  "SpriteRenderer": 32,
+  "Texture2D": 17,
+  "Material": 1,
+  "Animator": 2,
+  "AnimatorController": 1,
+  "AssetBundle": 1,
+  "Shader": 1,
+  "AnimationClip": 1
+ },
+ "spdata": {
+  "TextAsset": 22,
+  "AssetBundle": 1
+ },
+ "text": {
+  "TextAsset": 11,
+  "AssetBundle": 1
+ },
+ "tg001": {
+  "Sprite": 113,
+  "Texture2D": 113,
+  "AudioClip": 8,
+  "AssetBundle": 1
+ },
+ "tg002": {
+  "Texture2D": 20,
+  "Sprite": 20,
+  "AssetBundle": 1
+ },
+ "tg003": {
+  "Texture2D": 20,
+  "Sprite": 20,
+  "AssetBundle": 1
+ },
+ "tg004": {
+  "Texture2D": 79,
+  "Sprite": 79,
+  "AssetBundle": 1
+ },
+ "tg005": {
+  "Sprite": 60,
+  "Texture2D": 60,
+  "AssetBundle": 1
+ },
+ "tg006": {
+  "Texture2D": 15,
+  "Sprite": 15,
+  "AssetBundle": 1
+ },
+ "tg007": {
+  "Texture2D": 19,
+  "Sprite": 19,
+  "AssetBundle": 1
+ },
+ "tg008": {
+  "Texture2D": 75,
+  "Sprite": 75,
+  "AssetBundle": 1
+ },
+ "tg009": {
+  "Sprite": 38,
+  "Texture2D": 38,
+  "AssetBundle": 1
+ },
+ "tg010": {
+  "Sprite": 24,
+  "Texture2D": 24,
+  "AssetBundle": 1
+ },
+ "tg011": {
+  "Sprite": 19,
+  "Texture2D": 19,
+  "AssetBundle": 1
+ },
+ "tg012": {
+  "Sprite": 24,
+  "Texture2D": 24,
+  "AssetBundle": 1
+ },
+ "tg013": {
+  "Texture2D": 2,
+  "AssetBundle": 1,
+  "Sprite": 2
+ },
+ "tg014": {
+  "Texture2D": 61,
+  "Sprite": 61,
+  "AssetBundle": 1
+ },
+ "tg015": {
+  "Texture2D": 19,
+  "Sprite": 19,
+  "AssetBundle": 1
+ },
+ "tg016": {
+  "Sprite": 23,
+  "Texture2D": 23,
+  "AssetBundle": 1
+ },
+ "tg018": {
+  "Texture2D": 10,
+  "Sprite": 10,
+  "AssetBundle": 1
+ },
+ "v1.0.0": {
+  "Texture2D": 2669,
+  "Sprite": 2669,
+  "AssetBundle": 1
+ },
+ "v1.1.0": {
+  "Texture2D": 286,
+  "Sprite": 286,
+  "AssetBundle": 1
+ },
+ "v1.10.0": {
+  "Sprite": 60,
+  "Texture2D": 60,
+  "AssetBundle": 1
+ },
+ "v1.2.0": {
+  "Texture2D": 154,
+  "Sprite": 154,
+  "AssetBundle": 1
+ },
+ "v1.3.0": {
+  "Sprite": 169,
+  "Texture2D": 169,
+  "AssetBundle": 1
+ },
+ "v1.4.0": {
+  "Texture2D": 302,
+  "Sprite": 302,
+  "AssetBundle": 1
+ },
+ "v1.6.0": {
+  "Texture2D": 120,
+  "Sprite": 120,
+  "AssetBundle": 1
+ },
+ "v1.7.0": {
+  "Sprite": 120,
+  "Texture2D": 120,
+  "AssetBundle": 1
+ },
+ "v1.8.0": {
+  "Sprite": 150,
+  "Texture2D": 150,
+  "AssetBundle": 1
+ },
+ "v1.9.0": {
+  "Texture2D": 90,
+  "Sprite": 90,
+  "AssetBundle": 1
+ },
+ "v2.0.0": {
+  "Texture2D": 302,
+  "Sprite": 302,
+  "AssetBundle": 1
+ },
+ "v2.2.0": {
+  "Texture2D": 30,
+  "Sprite": 30,
+  "AssetBundle": 1
+ },
+ "v2.35.0": {
+  "Texture2D": 22,
+  "Sprite": 22,
+  "AssetBundle": 1
+ },
+ "v2.36.0": {
+  "Sprite": 2,
+  "Texture2D": 2,
+  "AssetBundle": 1
+ },
+ "v2.37.0": {
+  "Texture2D": 105,
+  "Sprite": 105,
+  "AssetBundle": 1
+ },
+ "v2.38.0": {
+  "Sprite": 109,
+  "Texture2D": 109,
+  "AssetBundle": 1
+ },
+ "v2.4.0": {
+  "Texture2D": 3,
+  "AssetBundle": 1,
+  "Sprite": 3
+ },
+ "v2.5.0": {
+  "Texture2D": 62,
+  "Sprite": 62,
+  "AssetBundle": 1
+ },
+ "v2.7.0": {
+  "AudioClip": 88,
+  "AssetBundle": 1
+ },
+ "v2.9.0": {
+  "Sprite": 75,
+  "Texture2D": 75,
+  "AssetBundle": 1
+ }
+}

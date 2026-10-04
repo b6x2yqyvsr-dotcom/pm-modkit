@@ -1,0 +1,19 @@
+{
+  "name": "口蘑 Mod 工坊",
+  "short_name": "口蘑Mod工坊",
+  "description": "Pocket Mortys 模组制作器：解包、改数据表、换贴图、造新角色、重打包 APK",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#16161a",
+  "theme_color": "#16161a",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "./icon-180.png", "sizes": "180x180", "type": "image/png" }
+  ],
+  "categories": ["utilities", "developer"]
+}

@@ -1,0 +1,41 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ---- 打包中间产物 / 产物 ----
+build/work/
+build/dmg/
+build/口蘑Mod工坊/
+build/*.pkg
+dist/
+*.spec
+!build/build_app.py
+!build/entry.py
+!build/icon/
+
+# ---- 运行时 ----
+*.ini
+pm-modkit-工作区/
+新角色产物/
+UnityCache产物/
+bundle产物/
+导出/
+output/
+
+# ---- 编辑器 / 系统 ----
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# ---- 游戏文件（几百 MB，别进仓库）----
+*.apk
+*.apks
+*.xapk
+!examples/**/*.apk
+*.obb
+口蘑数据包*.zip

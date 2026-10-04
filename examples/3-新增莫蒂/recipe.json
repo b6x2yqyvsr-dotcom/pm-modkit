@@ -1,0 +1,22 @@
+{
+  "name": "新增一只莫蒂",
+  "author": "示例",
+  "description": "这不是「改现有条目」而是「加新条目」，所以用 add-entry 命令，不用 recipe.json。这里放的是可直接执行的命令行。",
+  "add_entry": {
+    "kind": "morty",
+    "id": "MortyCoolRick",
+    "clone_from": "MortyDefault",
+    "name": "酷里克莫蒂",
+    "en_name": "Cool Rick Morty",
+    "desc": "用工具加出来的新莫蒂",
+    "assetid": "MortyBigBrain",
+    "gacha": 0,
+    "set": {
+      "spdata/MortyInfo.hpbase": 88,
+      "spdata/MortyInfo.attackbase": 92,
+      "spdata/MortyInfo.defencebase": 70,
+      "spdata/MortyInfo.speedbase": 85
+    }
+  },
+  "command": "python3 tools/cli.py add-entry 口蘑数据包.zip --kind morty --id MortyCoolRick --from MortyDefault --name 酷里克莫蒂 --en-name 'Cool Rick Morty' --assetid MortyBigBrain --gacha 0 --set spdata/MortyInfo.hpbase=88 --set spdata/MortyInfo.attackbase=92 --set spdata/MortyInfo.defencebase=70 --set spdata/MortyInfo.speedbase=85 --modpack 新增莫蒂.pmmod -o 产物"
+}

@@ -1,0 +1,20 @@
+# 口蘑 Mod 工坊 —— **桌面图形界面**的运行依赖
+#
+# 本机验证过的组合（macOS 14 arm64 / Python 3.14.6）：
+#   imgui-bundle 1.92.900   自带 Dear ImGui + Hello ImGui + ImmVision
+#   UnityPy      1.25.3     解包/回写 UnityFS 资源包
+#   pillow                   贴图导出/导入
+#   numpy                    ImmVision 显示图片用
+#
+# 预编译轮子覆盖：
+#   Windows  win_amd64 / win_arm64
+#   Linux    manylinux / musllinux，x86_64 / aarch64
+#   macOS    仅 arm64（Intel Mac 需要自己编译 imgui-bundle）
+#   Android / iOS  没有轮子 —— 手机端请用网页版，见 requirements-web.txt
+#
+# 安装：
+#   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+#   或直接跑 setup.sh（Linux/macOS）/ setup.bat（Windows）
+-r requirements-web.txt
+imgui-bundle>=1.92.900
+numpy>=1.26

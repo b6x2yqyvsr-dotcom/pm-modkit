@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1e1e24">
+<title>口蘑 Mod 工坊</title>
+<style>
+  :root{
+    --bg:#16161a; --bg2:#1e1e24; --bg3:#26262e; --line:#34343e;
+    --fg:#e6e6ea; --dim:#9a9aa6; --accent:#5cb8ff; --warn:#ffb84d; --ok:#6ddc80; --err:#ff6b6b;
+    /* 设计参考里的两个主色：琥珀黄做主强调，绿表示「改完之后」 */
+    --yellow:#ffd426; --green:#5cdb80; --card:#1b1b21;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"DejaVu Sans Mono",monospace;
+  }
+  .plan{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+  .plan .no{color:var(--yellow);font-weight:600;font-size:13px}
+  .status{
+    margin-left:auto;font-size:11.5px;padding:2px 9px;border-radius:4px;
+    background:var(--yellow);color:#1a1a10;font-weight:600;letter-spacing:.04em;
+  }
+  h3.big{font-size:23px;margin:2px 0 2px;font-weight:700;letter-spacing:.01em}
+  .latin{font-family:var(--mono);font-size:11.5px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
+  .sec{
+    display:flex;align-items:baseline;gap:8px;margin:16px 0 6px;
+    color:var(--yellow);font-weight:600;font-size:14.5px;
+  }
+  .sec.g{color:var(--green)}
+  .step{display:flex;align-items:baseline;gap:8px;margin:14px 0 4px;font-weight:600;font-size:14.5px}
+  .step .n{color:var(--yellow);font-size:15px}
+  .step.done .n{color:var(--green)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+  .chip{
+    font-size:12.5px;padding:4px 11px;border-radius:999px;cursor:pointer;user-select:none;
+    background:var(--bg3);color:var(--dim);border:1px solid transparent;
+  }
+  .chip.on{background:rgba(255,212,38,.14);color:var(--yellow);border-color:rgba(255,212,38,.45)}
+  .preset{
+    flex:1 1 150px;text-align:center;font-size:13px;padding:9px 8px;border-radius:8px;cursor:pointer;
+    background:var(--bg3);border:1px solid var(--line);
+  }
+  .preset.on{background:rgba(255,212,38,.13);border-color:var(--yellow);color:var(--yellow);font-weight:600}
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  @media(max-width:640px){ .cmp{grid-template-columns:1fr} }
+  .cmp .box{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+  .cmp .box .tag{font-size:11.5px;font-weight:700;letter-spacing:.05em}
+  .cmp .box.b .tag{color:var(--yellow)} .cmp .box.a .tag{color:var(--green)}
+  .sbar{display:grid;grid-template-columns:44px 34px 1fr 52px;align-items:center;gap:7px;margin:5px 0;font-size:13px}
+  .sbar .en{font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .sbar .track{height:7px;border-radius:4px;background:#242430;overflow:hidden}
+  .sbar .fill{height:100%;border-radius:4px;background:var(--yellow)}
+  .cmp .box.a .sbar .fill{background:var(--green)}
+  .sbar .v{text-align:right;font-variant-numeric:tabular-nums}
+  .sbar .v .d{font-size:11px;margin-left:4px}
+  .road{
+    display:flex;flex-wrap:wrap;gap:4px 10px;font-family:var(--mono);font-size:11px;
+    color:var(--dim);background:var(--card);border:1px solid var(--line);
+    border-radius:8px;padding:7px 10px;margin-top:12px;
+  }
+  .road b{color:var(--green);font-weight:600}
+  .sticky{
+    position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 22%);
+    padding:10px 0 4px;display:flex;gap:8px;
+  }
+  input[type=range]{width:100%;accent-color:var(--yellow)}
+  #dropmask{
+    position:fixed; inset:0; z-index:99; display:none;
+    background:rgba(10,10,14,.82); backdrop-filter:blur(3px);
+    align-items:center; justify-content:center; text-align:center; padding:24px;
+  }
+  #dropmask.on{display:flex}
+  #dropmask .inner{
+    border:2px dashed var(--yellow); border-radius:14px; padding:38px 30px;
+    color:var(--yellow); font-size:17px; font-weight:600; max-width:min(560px,86vw);
+  }
+  #dropmask .inner small{display:block;margin-top:8px;color:var(--dim);font-weight:400;font-size:12.5px}
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--fg);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+    display:flex; flex-direction:column; height:100dvh; overflow:hidden;
+  }
+  header{
+    padding:10px 14px; background:var(--bg2); border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; flex:none;
+    padding-top:calc(10px + env(safe-area-inset-top));
+  }
+  header h1{font-size:16px; margin:0; font-weight:600; white-space:nowrap}
+  .badge{
+    font-size:12px; padding:2px 8px; border-radius:999px;
+    background:var(--bg3); color:var(--dim); white-space:nowrap;
+  }
+  .badge.warn{color:var(--warn)} .badge.ok{color:var(--ok)} .badge.acc{color:var(--accent)}
+  main{flex:1; overflow:hidden; display:flex; flex-direction:column}
+  .panel{display:none; flex:1; overflow-y:auto; padding:12px 14px; -webkit-overflow-scrolling:touch}
+  .panel.on{display:block}
+  nav{
+    padding-bottom:env(safe-area-inset-bottom);
+    display:flex; background:var(--bg2); border-top:1px solid var(--line); flex:none;
+    padding-bottom:env(safe-area-inset-bottom); overflow-x:auto;
+  }
+  nav button{
+    flex:1 0 auto; min-width:64px; padding:10px 8px; background:none; border:0;
+    color:var(--dim); font-size:12.5px; cursor:pointer; white-space:nowrap;
+  }
+  nav button.on{color:var(--accent); box-shadow:inset 0 2px 0 var(--accent)}
+  .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px}
+  input,select,textarea,button{font:inherit; color:var(--fg)}
+  input,select,textarea{
+    background:var(--bg3); border:1px solid var(--line); border-radius:8px; padding:8px 10px; width:100%;
+  }
+  textarea{font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13px; min-height:220px; resize:vertical}
+  button{
+    background:var(--bg3); border:1px solid var(--line); border-radius:8px;
+    padding:8px 14px; cursor:pointer; white-space:nowrap;
+  }
+  button:active{background:#33333d}
+  button.primary{background:#1d4c73; border-color:#2a6ea6; color:#dff0ff}
+  button:disabled{opacity:.4; cursor:not-allowed}
+  .list{border:1px solid var(--line); border-radius:10px; overflow:hidden}
+  .item{
+    padding:9px 12px; border-bottom:1px solid var(--line); cursor:pointer;
+    display:flex; gap:8px; align-items:center;
+  }
+  .item:last-child{border-bottom:0}
+  .item:active{background:var(--bg3)}
+  .item.on{background:#20364a}
+  .item .nm{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .item .tag{font-size:11.5px; color:var(--dim); flex:none}
+  .item .dot{color:var(--warn); flex:none}
+  .muted{color:var(--dim); font-size:13px}
+  .card{background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:12px}
+  .card h3{margin:0 0 8px; font-size:14px; color:var(--accent); font-weight:600}
+  img.preview{max-width:100%; border-radius:8px; background:
+    repeating-conic-gradient(#2a2a32 0 25%,#232329 0 50%) 50%/18px 18px;}
+  pre.log{
+    background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:10px;
+    font-size:12px; white-space:pre-wrap; word-break:break-all; max-height:60dvh; overflow:auto; margin:0;
+  }
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  @media(max-width:520px){ .grid2{grid-template-columns:1fr} }
+  .field{margin-bottom:10px}
+  .field label{display:block; font-size:12.5px; color:var(--dim); margin-bottom:3px}
+  .field .en{color:#6f6f7c; font-size:11.5px; margin-left:6px}
+  #toast{
+    position:fixed; left:50%; bottom:calc(70px + env(safe-area-inset-bottom)); transform:translateX(-50%);
+    background:#2b2b34; border:1px solid var(--line); border-radius:10px; padding:10px 16px;
+    max-width:90vw; display:none; z-index:99; box-shadow:0 6px 24px #0008; white-space:pre-wrap; font-size:13.5px;
+  }
+  #toast.on{display:block}
+  .spin{display:none; position:fixed; inset:0; background:#0006; z-index:100; align-items:center; justify-content:center}
+  .spin.on{display:flex}
+  .spin div{background:var(--bg2); padding:16px 22px; border-radius:12px; border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <h1>口蘑 Mod 工坊</h1>
+  <span class="badge acc" id="plat">…</span>
+  <span class="badge" id="srclabel">未打开源</span>
+  <span class="badge ok" id="selfbadge" style="display:none"></span>
+  <span class="badge warn" id="modbadge" style="display:none"></span>
+  <button class="badge acc" id="installbtn" style="display:none;cursor:pointer;border:0" onclick="installApp()">装到主屏</button>
+  <span class="badge" id="checkbadge" style="display:none" onclick="doCheck()"></span>
+</header>
+
+<main>
+  <!-- 源 -->
+  <section class="panel on" id="p-source">
+    <div class="card">
+      <h3>打开游戏文件</h3>
+      <p class="muted">把 <b>dp.apk</b> 和 <b>口蘑数据包.zip</b> 都加上。可以一次填多个路径，用换行分隔。</p>
+      <p class="muted">如果用的是 <b>加强版 APK</b>（自带全部资源的那种），<b>只填它一个就够了</b> ——
+         它里面已经包含全部 155 个资源包和播种表，重打包它等于一次带上所有改动。</p>
+      <div class="field">
+        <label>服务器上的路径（每个一行）</label>
+        <textarea id="paths" style="min-height:90px" placeholder="/storage/emulated/0/pm/dp.apk&#10;/storage/emulated/0/pm/口蘑数据包(1).zip"></textarea>
+      </div>
+      <div class="row">
+        <button class="primary" onclick="doOpen(false)">打开</button>
+        <button onclick="doOpen(true)">追加到当前源</button>
+      </div>
+      <hr style="border:0;border-top:1px solid var(--line);margin:12px 0">
+      <div class="field">
+        <label>或者直接上传文件（手机上的 apk / zip）</label>
+        <input type="file" id="upfile" multiple>
+      </div>
+      <button onclick="doUpload()">上传并打开</button>
+    </div>
+    <div class="card">
+      <h3>当前来源</h3>
+      <div id="containers" class="muted">还没打开任何文件。</div>
+    </div>
+  </section>
+
+  <!-- 资源包 -->
+  <section class="panel" id="p-bundles">
+    <div class="row">
+      <input id="bfilter" placeholder="筛选包名" oninput="renderBundles()">
+      <label class="muted" style="display:flex;gap:6px;align-items:center;white-space:nowrap">
+        <input type="checkbox" id="bonlymod" style="width:auto" onchange="renderBundles()"> 只看已改
+      </label>
+    </div>
+    <div class="list" id="blist"></div>
+  </section>
+
+  <!-- 资源 -->
+  <section class="panel" id="p-assets">
+    <div class="row">
+      <select id="atype" onchange="renderAssets()" style="flex:1;min-width:130px"></select>
+    </div>
+    <div class="row">
+      <input id="afilter" placeholder="搜名字 / path_id" oninput="renderAssets()">
+    </div>
+    <div class="muted" id="acount" style="margin-bottom:8px"></div>
+    <div class="list" id="alist"></div>
+  </section>
+
+  <!-- 编辑 -->
+  <section class="panel" id="p-edit">
+    <div id="editbox" class="muted">先在上面选一个资源。</div>
+  </section>
+
+  <!-- 新增条目 -->
+  <section class="panel" id="p-new">
+    <h3 class="big">新增条目</h3>
+    <p class="muted" style="margin:4px 0 0">克隆一条现有的再改，字段和类型天然齐全。</p>
+
+    <div class="step" id="s1"><span class="n">①</span> 选类型</div>
+    <div class="field">
+      <select id="nkind" onchange="loadEntries()"></select>
+    </div>
+
+    <div class="step" id="s2"><span class="n">②</span> 选模板</div>
+    <div class="field">
+      <label>搜 id 或中文名</label>
+      <input id="nfilter" placeholder="例如：血清 / Morty" oninput="renderTemplateList()">
+    </div>
+    <div class="chips" id="nfilters"></div>
+    <div class="field">
+      <label>复制自（模板）</label>
+      <select id="nclone" onchange="loadTemplateFields()" size="6" style="height:auto"></select>
+    </div>
+    <div class="cmp">
+      <div class="box b"><div class="tag">BEFORE · 模板</div><div id="nebefore" class="muted">左边挑一只</div></div>
+      <div class="box a"><div class="tag">AFTER · 新建</div><div id="neafter" class="muted">—</div></div>
+    </div>
+
+    <div id="nform"></div>
+  </section>
+
+  <!-- 图鉴 -->
+  <section class="panel" id="p-gal">
+    <h3 class="big">角色图鉴</h3>
+    <p class="muted" style="margin:4px 0 0">选一只，直接看它的立绘、15 帧动作、数值和技能效果。</p>
+    <div class="field">
+      <input id="galf" placeholder="搜 id 或中文名" oninput="renderGalList()">
+    </div>
+    <div class="field">
+      <label>选一只（<span id="galcount">0</span> 只）</label>
+      <select id="galclone" onchange="renderGallery()" size="5" style="height:auto"></select>
+    </div>
+    <div id="galview"></div>
+  </section>
+
+  <!-- 导出 -->
+  <section class="panel" id="p-export">
+    <div class="card">
+      <h3>生成产物</h3>
+      <div class="field">
+        <label>形式</label>
+        <select id="emode">
+          <option value="cache">UnityCache（推荐，不用重装 APK）</option>
+          <option value="modpack">.pmmod 模组包</option>
+          <option value="cdn">CDN 目录</option>
+          <option value="bundles">散装 bundle</option>
+          <option value="all">全部都要</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>输出目录（留空用默认）</label>
+        <input id="eout" placeholder="">
+      </div>
+      <button class="primary" onclick="doExport()">生成</button>
+    </div>
+    <div class="card">
+      <h3>APK 重打包</h3>
+      <div id="apkdiag"></div>
+      <p class="muted">需要 apksigner / zipalign。改动的包必须**本来就在 APK 里** —— 下面会告诉你哪些能打、哪些不能，以及为什么。</p>
+      <div class="field"><label>原 APK 路径</label><input id="apksrc"></div>
+      <div class="field"><label>输出 APK 路径</label><input id="apkout"></div>
+      <label class="muted" style="display:flex;gap:6px;align-items:center;margin-bottom:10px">
+        <input type="checkbox" id="apksign" checked style="width:auto"> 重签名（必须，否则装不上）
+      </label>
+      <button onclick="doApk()">重打包 + 签名</button>
+    </div>
+    <div class="card">
+      <h3>待应用改动</h3>
+      <div id="mods" class="muted">还没有改动。</div>
+      <div class="row" style="margin-top:10px">
+        <button onclick="doResetAll()">清空全部改动</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 日志 -->
+  <section class="panel" id="p-log">
+    <div class="row">
+      <button onclick="doClearLog()">清空</button>
+      <button onclick="refresh()">刷新</button>
+    </div>
+    <pre class="log" id="log"></pre>
+  </section>
+</main>
+
+<nav>
+  <button class="on" data-p="source" onclick="tab(this)">源</button>
+  <button data-p="bundles" onclick="tab(this)">资源包</button>
+  <button data-p="assets" onclick="tab(this)">资源</button>
+  <button data-p="edit" onclick="tab(this)">编辑</button>
+  <button data-p="new" onclick="tab(this)">新增</button>
+  <button data-p="gal" onclick="tab(this)">图鉴</button>
+  <button data-p="export" onclick="tab(this)">导出</button>
+  <button data-p="log" onclick="tab(this)">日志</button>
+</nav>
+
+<div id="toast"></div>
+<div class="spin" id="spin"><div id="spintext">处理中…</div></div>
+
+<script>
+"use strict";
+const S = { state:null, bundle:null, assets:null, asset:null, entries:null };
+
+/* ---------------- 小工具 ---------------- */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s??"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function toast(msg, ms=3200){
+  const t=$("toast"); t.textContent=msg; t.classList.add("on");
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("on"), ms);
+}
+function busy(on, text){ $("spintext").textContent=text||"处理中…"; $("spin").classList.toggle("on", !!on); }
+async function api(path, body, method){
+  const opt = { method: method || (body!==undefined ? "POST":"GET") };
+  if (body!==undefined){ opt.headers={"Content-Type":"application/json"}; opt.body=JSON.stringify(body); }
+  const r = await fetch(path, opt);
+  let j; try{ j = await r.json(); }catch(e){ throw new Error("服务器返回异常 ("+r.status+")"); }
+  if (!j.ok) throw new Error(j.error || "操作失败");
+  return j;
+}
+async function run(fn, label){
+  busy(true, label); 
+  try{ await fn(); }
+  catch(e){ toast("✗ "+e.message, 6000); }
+  finally{ busy(false); }
+}
+// ---- 拖拽添加 --------------------------------------------------------------
+// 网页版用 HTML5 原生拖放；桌面版挂的是 GLFW 的系统回调（见 app/main.py）
+(function(){
+  let depth = 0;
+  const mask = () => document.getElementById("dropmask");
+  addEventListener("dragenter", e => {
+    if(![...(e.dataTransfer?.types||[])].includes("Files")) return;
+    e.preventDefault(); depth++; mask().classList.add("on");
+  });
+  addEventListener("dragover", e => {
+    if(![...(e.dataTransfer?.types||[])].includes("Files")) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = "copy";
+  });
+  addEventListener("dragleave", e => {
+    depth = Math.max(0, depth-1);
+    if(!depth) mask().classList.remove("on");
+  });
+  addEventListener("drop", async e => {
+    if(![...(e.dataTransfer?.types||[])].includes("Files")) return;
+    e.preventDefault(); depth = 0; mask().classList.remove("on");
+    const files = [...(e.dataTransfer.files||[])];
+    if(!files.length) return;
+    await uploadFiles(files);
+  });
+})();
+async function uploadFiles(files){
+  await run(async()=>{
+    const fd = new FormData();
+    files.forEach(f => fd.append("files", f, f.name));
+    const st = await fetch("/api/upload-many", {method:"POST", body:fd}).then(r=>r.json());
+    if(!st || st.ok === false) throw new Error((st && st.error) || "上传失败");
+    await refresh();
+    toast(`✓ 拖入 ${files.length} 个文件` + (st.added ? `，追加 ${st.added} 个来源` : ""), 6000);
+  }, "接收文件…");
+}
+// ---- PWA：注册 Service Worker + 「装到主屏」提示 ---------------------------
+if ("serviceWorker" in navigator) {
+  addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  window.__installPrompt = e;
+  const b = document.getElementById("installbtn");
+  if (b) b.style.display = "";
+});
+function installApp(){
+  const e = window.__installPrompt;
+  if (e) { e.prompt(); window.__installPrompt = null; return; }
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  toast(ios
+    ? "在 Safari 里点底部的「分享」→「添加到主屏幕」就能装成 App"
+    : "在浏览器菜单里选「安装应用 / 添加到主屏幕」", 9000);
+}
+function tab(btn){
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on", b===btn));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("on"));
+  $("p-"+btn.dataset.p).classList.add("on");
+  // 图鉴是懒加载的，第一次点进去才读
+  if(btn.dataset.p==="gal" && !GAL.ids.length) loadGallery();
+}
+function go(name){ const b=document.querySelector('nav button[data-p="'+name+'"]'); if(b) tab(b); }
+
+/* ---------------- 源 ---------------- */
+async function doOpen(append){
+  const paths = $("paths").value.split("\n").map(s=>s.trim()).filter(Boolean);
+  if(!paths.length) return toast("先填路径，或用下面的上传");
+  await run(async()=>{
+    const r = await api("/api/open", {paths, append});
+    toast("✓ "+r.message); await refresh(); if(!append) go("bundles");
+  }, append?"追加中…":"打开中…");
+}
+async function doUpload(){
+  const files = $("upfile").files;
+  if(!files.length) return toast("先选文件");
+  await run(async()=>{
+    const paths=[];
+    for(const f of files){
+      const r = await fetch("/api/upload?name="+encodeURIComponent(f.name), {method:"POST", body:f});
+      const j = await r.json();
+      if(!j.ok) throw new Error(j.error||"上传失败");
+      paths.push(j.path);
+      toast("已上传 "+f.name, 1500);
+    }
+    const r = await api("/api/open", {paths, append:false});
+    toast("✓ "+r.message); await refresh(); go("bundles");
+  }, "上传中…（大文件会慢一会）");
+}
+
+/* ---------------- 状态 ---------------- */
+async function refresh(){
+  const st = await api("/api/state");
+  S.state = st;
+  $("srclabel").textContent = st.opened ? ("源：" + st.label) : "未打开源";
+  // 加强版那种自包含 APK：自带全部资源，不用再开数据包
+  const sb = $("selfbadge");
+  sb.style.display = st.self_contained ? "" : "none";
+  if (st.self_contained) {
+    sb.textContent = `自带全部 ${(st.bundles||[]).length} 个包` + (st.pmseed? ` · 播种表 ${st.pmseed} 条` : "");
+    sb.title = "这个 APK 里已经包含全部资源包，重打包它就能一次带上所有改动";
+  }
+  const n = (st.modified||[]).length;
+  const mb = $("modbadge");
+  mb.style.display = n ? "" : "none";
+  if(n) mb.textContent = "● "+n+" 个包已改";
+  // 来源
+  $("containers").innerHTML = st.opened
+    ? (st.containers||[]).map(c=>`<div>· <b>${esc(c.label)}</b> <span class="muted">(${esc(c.kind)})</span><br><span class="muted" style="font-size:11.5px">${esc(c.root)}</span></div>`).join("")
+    : "还没打开任何文件。";
+  // 日志
+  $("log").textContent = (st.log||[]).join("\n");
+  $("log").scrollTop = $("log").scrollHeight;
+  // 改动
+  const mods = st.modified||[];
+  $("mods").innerHTML = mods.length
+    ? mods.map(m=>`<div style="margin-bottom:6px">● <b>${esc(m.bundle)}</b>`+
+        (m.prebuilt?` <span class="badge ok">成品包</span>`:"")+
+        (m.assets||[]).map(a=>`<div class="muted" style="margin-left:14px">· ${esc(a.type)} ${esc(a.name)}</div>`).join("")+
+        `</div>`).join("")
+    : "还没有改动。";
+  renderBundles();
+  renderApkDiag(st);
+  renderCheck(st.check);
+}
+function renderCheck(c){
+  const b=$("checkbadge"); if(!b) return;
+  if(!c || !st_opened()){ b.style.display="none"; return; }
+  b.style.display="";
+  if(c.errors){
+    b.className="badge"; b.style.color="var(--err)";
+    b.textContent=`✗ ${c.errors} 个致命问题（点我看）`;
+  } else if(c.warnings){
+    b.className="badge warn"; b.textContent=`⚠ ${c.warnings} 个提示`;
+  } else {
+    b.className="badge ok"; b.textContent="✓ 数据表体检通过";
+  }
+}
+function st_opened(){ return S.state && S.state.opened; }
+async function doCheck(){
+  await run(async()=>{
+    const r=await api("/api/check");
+    if(r.clean){ toast("✓ "+r.summary, 5000); return; }
+    let msg=r.summary+"\n\n"+r.issues.slice(0,8).map(i=>i.line).join("\n");
+    if(r.issues.length>8) msg+=`\n…还有 ${r.issues.length-8} 条`;
+    if(r.errors) msg+="\n\n要不要我自动修？点确定试试（主键/编号/缺条目都能修）";
+    toast(msg, 12000);
+    if(r.errors && confirm(msg+"\n\n现在自动修吗？")){
+      const f=await api("/api/fix",{});
+      toast(f.message, 12000);
+      await refresh();
+    }
+  }, "体检中…");
+}
+function renderApkDiag(st){
+  const box=$("apkdiag"); if(!box) return;
+  const d=st.apk_diagnosis;
+  if(!d){ box.innerHTML=""; return; }
+  let h="";
+  if(!d.has_apk){
+    h+=`<p style="color:var(--warn)">⚠ 你还没有打开任何 APK。用「源」页追加一个，或者直接用上面的 UnityCache 路线（不需要 APK）。</p>`;
+  } else if(d.not_in_apk.length){
+    h+=`<p style="color:var(--warn)">⚠ 这 ${d.not_in_apk.length} 个包不在你打开的 APK 里，打了也没用：${d.not_in_apk.slice(0,8).join("、")}</p>`;
+  } else if(d.in_apk.length){
+    h+=`<p style="color:var(--ok)">✓ ${d.in_apk.length} 个改动包都在 APK 内，能打进去。</p>`;
+  }
+  if(d.where && Object.keys(d.where).length){
+    h+=`<details style="margin:6px 0"><summary class="muted">每个改动包到底在哪</summary>`;
+    for(const [n,locs] of Object.entries(d.where)){
+      const ok=d.in_apk.includes(n);
+      h+=`<div class="muted" style="margin-left:10px">${ok?"✓":"✗"} ${n} —— 在 ${locs.join("/")}</div>`;
+    }
+    h+="</details>";
+  }
+  for(const a of (d.advice||[])) h+=`<p class="muted" style="margin:4px 0">· ${a.replace(/\*\*/g,"")}</p>`;
+  box.innerHTML=h;
+}
+function renderBundles(){
+  const st=S.state; if(!st||!st.opened){ $("blist").innerHTML='<div class="item muted">先打开源。</div>'; return; }
+  const f=$("bfilter").value.trim().toLowerCase(), only=$("bonlymod").checked;
+  let list = st.bundles||[];
+  if(only) list = list.filter(b=>b.modified);
+  if(f) list = list.filter(b=>b.name.toLowerCase().includes(f));
+  $("blist").innerHTML = list.length ? list.map(b=>
+    `<div class="item ${S.bundle===b.name?"on":""}" onclick="openBundle('${esc(b.name)}')">
+       <span class="nm">${b.modified?'<span class="dot">●</span> ':''}${esc(b.name)}</span>
+       <span class="tag">${esc(b.doc||"")}</span>
+       <span class="tag">${esc(b.layout_label)}${b.version!=null?" v"+b.version:""}</span>
+     </div>`).join("")
+   : '<div class="item muted">没有匹配的。</div>';
+}
+
+/* ---------------- 资源 ---------------- */
+async function openBundle(name){
+  await run(async()=>{
+    S.bundle = name;
+    S.assets = await api("/api/bundle?name="+encodeURIComponent(name));
+    S.asset = null;
+    const sel=$("atype");
+    sel.innerHTML = '<option value="">全部类型</option>' +
+      (S.assets.types||[]).map(t=>`<option value="${esc(t.type)}">${esc(t.short)}（${esc(t.type)}）</option>`).join("");
+    renderAssets(); renderBundles(); go("assets");
+  }, "读取资源包…");
+}
+function renderAssets(){
+  if(!S.assets){ $("alist").innerHTML='<div class="item muted">先选一个资源包。</div>'; return; }
+  const f=$("afilter").value.trim().toLowerCase(), t=$("atype").value;
+  let list=S.assets.assets||[];
+  if(t) list=list.filter(a=>a.type===t);
+  if(f) list=list.filter(a=>(a.name||"").toLowerCase().includes(f) || String(a.pid).includes(f));
+  $("acount").textContent = `${S.bundle} · 匹配 ${list.length} / 共 ${(S.assets.assets||[]).length}`;
+  const cap = list.slice(0, 600);
+  $("alist").innerHTML = cap.length ? cap.map(a=>
+    `<div class="item ${S.asset&&S.asset.pid===a.pid?"on":""}" onclick="openAsset(${a.pid})">
+       <span class="nm">${a.modified?'<span class="dot">●</span> ':''}${esc(a.name||("path_id "+a.pid))}</span>
+       <span class="tag">${esc(a.type_short)}</span>
+     </div>`).join("") + (list.length>cap.length?`<div class="item muted">…还有 ${list.length-cap.length} 个，缩小搜索范围</div>`:"")
+   : '<div class="item muted">没有匹配的。</div>';
+}
+async function openAsset(pid){
+  await run(async()=>{
+    S.asset = await api("/api/asset?bundle="+encodeURIComponent(S.bundle)+"&pid="+pid);
+    renderAsset(); renderAssets(); go("edit");
+  }, "读取资源…");
+}
+
+/* ---------------- 编辑 ---------------- */
+function renderAsset(){
+  const a=S.asset; const box=$("editbox");
+  if(!a){ box.innerHTML='<div class="muted">先在上面选一个资源。</div>'; return; }
+  let h = `<div class="card"><h3>${esc(a.type_doc||a.type)}　${esc(a.name||"")}</h3>
+    <div class="muted">path_id ${a.pid} · ${a.size.toLocaleString()} 字节
+      ${a.modified?' · <span style="color:var(--warn)">已修改</span>':''}</div>`;
+  h += `<div class="row" style="margin-top:10px">
+      <button onclick="dl()">下载/导出</button>
+      ${a.replaceable?`<button class="primary" onclick="$('upfile2').click()">替换…</button>`:""}
+      ${a.modified?`<button onclick="revertAsset()">撤销此资源</button>`:""}
+    </div>
+    <input type="file" id="upfile2" style="display:none" onchange="doReplace(this)">
+    ${a.replaceable?"":`<div class="muted">${esc(a.note||"这个类型不支持替换")}</div>`}
+    </div>`;
+
+  if(a.kind==="image"){
+    h += `<div class="card"><h3>预览</h3>
+      <img class="preview" src="/api/asset/image?bundle=${encodeURIComponent(a.bundle)}&pid=${a.pid}&max=1400">
+      <div class="muted" style="margin-top:6px">原尺寸 ${a.width}×${a.height}（这里显示的是缩略图）</div></div>`;
+  } else if(a.kind==="text"){
+    h += `<div class="card"><h3>文本内容${a.tree?"":"（可直接改）"}</h3>
+      <div class="muted">${(a.text_len||0).toLocaleString()} 字符${a.truncated?"（只显示前 40 万）":""}</div>
+      <div class="row" style="margin-top:8px">
+        <button onclick="fmtJson()">格式化 JSON</button>
+        <button class="primary" onclick="saveText()">应用到资源</button>
+      </div>
+      <textarea id="ta">${esc(a.text||"")}</textarea></div>`;
+  } else if(a.kind==="tree"){
+    h += `<div class="card"><h3>类型树（高级，改错会坏资源）</h3>
+      <div class="row"><button class="primary" onclick="saveTree()">应用到资源</button></div>
+      <textarea id="ta">${esc(a.tree||"")}</textarea></div>`;
+  } else if(a.kind==="audio"){
+    h += `<div class="card"><h3>音频</h3><div class="muted">${esc(a.audio||"")}</div>
+      <div class="muted" style="margin-top:6px">音频是 FSB 流式资源，本工具只支持导出成 wav。</div></div>`;
+  } else {
+    h += `<div class="card"><div class="muted">这个类型没有预览，可以「下载/导出」拿原始字节。</div></div>`;
+  }
+  box.innerHTML = h;
+}
+function fmtJson(){
+  const ta=$("ta"); if(!ta) return;
+  try{ ta.value = JSON.stringify(JSON.parse(ta.value), null, 2); toast("✓ 已格式化"); }
+  catch(e){ toast("✗ JSON 有语法错误："+e.message); }
+}
+async function saveText(){
+  await run(async()=>{
+    const r = await api("/api/asset/text", {bundle:S.asset.bundle, pid:S.asset.pid, text:$("ta").value});
+    toast("✓ "+r.message); await openAsset(S.asset.pid); await refresh();
+  }, "写入中…");
+}
+async function saveTree(){
+  await run(async()=>{
+    const r = await api("/api/asset/typetree", {bundle:S.asset.bundle, pid:S.asset.pid, text:$("ta").value});
+    toast("✓ "+r.message); await openAsset(S.asset.pid); await refresh();
+  }, "写入中…");
+}
+async function doReplace(input){
+  const f = input.files[0]; if(!f) return;
+  await run(async()=>{
+    const up = await fetch("/api/upload?name="+encodeURIComponent(f.name)+"&into=replace", {method:"POST", body:f});
+    const uj = await up.json(); if(!uj.ok) throw new Error(uj.error);
+    const r = await api("/api/asset/file", {bundle:S.asset.bundle, pid:S.asset.pid, path:uj.path});
+    toast((r.ok?"✓ ":"✗ ")+r.message); await openAsset(S.asset.pid); await refresh();
+  }, "替换中…");
+  input.value="";
+}
+async function revertAsset(){
+  await run(async()=>{
+    await api("/api/asset/revert", {bundle:S.asset.bundle, pid:S.asset.pid});
+    toast("✓ 已撤销"); await openAsset(S.asset.pid); await refresh();
+  }, "撤销中…");
+}
+function dl(){ window.location = "/api/asset/download?bundle="+encodeURIComponent(S.asset.bundle)+"&pid="+S.asset.pid; }
+
+/* ---------------- 新增条目 ---------------- */
+async function loadEntries(){
+  await run(async()=>{
+    const kind = $("nkind").value || "morty";
+    S.entries = await api("/api/entries?kind="+kind);
+    S.entries._filter="";
+    $("nfilter").value="";
+    NE.stats={}; NE.base={};
+    if(!$("nkind").options.length){
+      $("nkind").innerHTML = S.entries.kinds.map(k=>`<option value="${esc(k.key)}">${esc(k.label)}</option>`).join("");
+      $("nkind").value = kind;
+    }
+    renderTemplateList(); renderTemplateFields();
+  }, "读取数据表…");
+}
+// ---- 新增条目的界面状态（预设 / 筛选 / 数值）----------------------------
+const NE = {
+  filter:"all",
+  stats:{}, base:{},
+  FIELDS:[["hpbase","体力","HP",255],["attackbase","攻击","ATK",255],
+          ["defencebase","防御","DEF",255],["speedbase","速度","SPD",255]],
+  FILTERS:[["all","全部"],["hp","高体力"],["atk","高攻击"],["spd","高速"]],
+};
+function neRenderChrome(){
+  $("nfilters").innerHTML = NE.FILTERS.map(([k,label]) =>
+    `<div class="chip ${NE.filter===k?"on":""}" onclick="neFilter('${k}')">${esc(label)}</div>`).join("");
+}
+function neFilter(k){ NE.filter=k; renderTemplateList(); neRenderChrome(); }
+function neStatsNow(){
+  // 值可能还没被滑条改过，以 NE.stats 为准，缺的从模板取
+  const out={};
+  NE.FIELDS.forEach(([k])=>{ out[k] = NE.stats[k] ?? NE.base[k] ?? 0; });
+  return out;
+}
+function neRenderStats(){
+  const box=$("nestats"); if(!box) return;
+  const cur=neStatsNow(), base=NE.base||{};
+  box.innerHTML = NE.FIELDS.map(([k,zh,en,lim])=>{
+    const d = cur[k]-base[k];
+    return `<div class="sbar">
+      <span>${esc(zh)}</span><span class="en">${esc(en)}</span>
+      <input type="range" min="1" max="${lim}" value="${cur[k]}"
+             oninput="NE.stats['${k}']=+this.value; neRenderStats(); neRenderCmp();">
+      <span class="v">${cur[k]}${d?`<span class="d" style="color:${d>0?"var(--green)":"var(--warn)"}">${d>0?"+":""}${d}</span>`:""}</span>
+    </div>`;
+  }).join("") + (()=>{
+    const t=Object.values(cur).reduce((a,b)=>a+b,0);
+    const bt=Object.values(base).reduce((a,b)=>a+b,0);
+    return `<div class="sbar" style="margin-top:8px"><span>总和</span><span class="en">TOTAL</span>
+      <span></span><span class="v">${t}${t!==bt?`<span class="d">${t>bt?"+":""}${t-bt}</span>`:""}</span></div>`;
+  })();
+}
+function neSetStats(mode){
+  const base=NE.base||{};
+  if(mode==="avg"){ const a=Math.round(Object.values(base).reduce((x,y)=>x+y,0)/4);
+    NE.stats=Object.fromEntries(NE.FIELDS.map(([k])=>[k,a])); }
+  if(mode==="p10"){ NE.stats=Object.fromEntries(NE.FIELDS.map(([k])=>[k,Math.min(255,Math.round((NE.stats[k]??base[k])*1.1))])); }
+  if(mode==="max"){ NE.stats={hpbase:150,attackbase:140,defencebase:135,speedbase:155}; }
+  if(mode==="reset"){ NE.stats={...base}; }
+  neRenderStats(); neRenderCmp();
+}
+function neRenderCmp(){
+  const e=S.entries; if(!e) return;
+  const id=$("nclone").value;
+  if(!id){ $("nebefore").innerHTML='<span class="muted">左边挑一只</span>'; $("neafter").innerHTML='—'; return; }
+  const t=e.tables[0];
+  const val=(f)=>{ const x=(t.fields||[]).find(y=>y.name===f); return x?x.value:""; };
+  const base={};
+  NE.FIELDS.forEach(([k])=>{ const v=parseInt(val(k)); base[k]=isFinite(v)?v:0; });
+  NE.base=base;
+  if(!Object.keys(NE.stats).length) NE.stats={...base};
+  const cur=neStatsNow();
+  const rows=(v,cmp)=>{ const lim=200; return NE.FIELDS.map(([k,zh,en])=>{
+      const d = cmp? v[k]-cmp[k] : 0;
+      return `<div class="sbar"><span>${esc(zh)}</span><span class="en">${esc(en)}</span>
+        <div class="track"><div class="fill" style="width:${Math.min(100,v[k]/lim*100)}%"></div></div>
+        <span class="v">${v[k]}${d?`<span class="d">${d>0?"+":""}${d}</span>`:""}</span></div>`;
+    }).join("") + `<div class="sbar"><span>总和</span><span class="en">TOTAL</span><span></span>
+      <span class="v">${Object.values(v).reduce((a,b)=>a+b,0)}</span></div>`; };
+  $("nebefore").innerHTML = `<div style="font-size:12px">${esc(e.names[id]||id)} <span class="latin">${esc(id)}</span></div>` + rows(base);
+  $("neafter").innerHTML = `<div style="font-size:12px">${esc($("nid")?$("nid").value:"?")}</div>` + rows(cur, base);
+}
+function renderTemplateList(){
+  const e=S.entries; if(!e) return;
+  const f=($("nfilter").value||"").trim().toLowerCase();
+  let ids=e.ids||[];
+  if(f) ids=ids.filter(i=>i.toLowerCase().includes(f) || (e.names[i]||"").toLowerCase().includes(f));
+  // 分类筛选（服务端给了每条模板的数值，所以这些是真的会过滤）
+  const st=e.stats||{};
+  const nf=NE.filter;
+  if(nf!=="all"){
+    const cond={hp:["hp",110],atk:["atk",110],spd:["spd",110]}[nf];
+    if(cond) ids=ids.filter(i=>(st[i]||{})[cond[0]]>=cond[1]);
+    else if(nf==="evo") ids=ids.filter(i=>(st[i]||{}).evolution);
+    else ids=ids.filter(i=>(st[i]||{}).element===nf);
+  }
+  // 显示时带上简要数值，选之前就能看出强弱
+  const cap=ids.slice(0,300);
+  $("nclone").innerHTML = cap.map(i=>{
+    const v=st[i]||{};
+    const tail = v.hp!=null ? `　HP${v.hp} ATK${v.atk} SPD${v.spd}` : "";
+    return `<option value="${esc(i)}">${e.names[i]?esc(e.names[i])+" · ":""}${esc(i)}${tail}</option>`;
+  }).join("") || '<option value="">（没有匹配）</option>';
+  $("nclone")._ids = cap;
+  if(typeof neRenderCmp==="function") neRenderCmp();
+}
+function renderTemplateFields(){
+  const e=S.entries; if(!e) return;
+  const clone=$("nclone").value;
+  if(!clone){ $("nform").innerHTML='<div class="muted">先选一个模板。</div>'; return; }
+  const t=e.tables[0];
+  let h = `<hr style="border:0;border-top:1px solid var(--line);margin:12px 0">
+    <div class="field"><label>新 ID <span class="en">不能和现有的重复</span></label>
+      <input id="nid" value="${esc(kindPrefix(e.kind))}MyCustom"></div>
+    <div class="grid2">
+      <div class="field"><label>中文名</label><input id="nzh" value="${esc((e.names[clone]||"")+"（改）")}"></div>
+      <div class="field"><label>英文名</label><input id="nen"></div>
+    </div>
+    <div class="field"><label>描述</label><input id="ndesc"></div>`;
+  if(e.assets && e.assets.length){
+    h += `<div class="field"><label>借用美术（assetid） <span class="en">新条目显示这套图</span></label>
+      <select id="nasset">${e.assets.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("")}</select></div>`;
+  }
+  if(e.kind==="morty"){
+    h += `<div class="step" id="s4"><span class="n">④</span> 调数值</div>
+      <div class="muted" style="font-size:12px;margin-bottom:4px">拖动即可，不用去认 hpbase 这种字段名。</div>
+      <div id="nestats"></div>
+      <div class="chips">
+        <div class="chip" onclick="neSetStats('avg')">平均</div>
+        <div class="chip" onclick="neSetStats('p10')">+10%</div>
+        <div class="chip" onclick="neSetStats('max')">拉满</div>
+        <div class="chip" onclick="neSetStats('reset')">恢复模板</div>
+      </div>`;
+  }
+  h += `<div class="field"><label>要改哪张表</label>
+    <select id="ntable" onchange="renderFieldTable()">${e.tables.map((t,i)=>`<option value="${i}">${esc(t.label)} — ${esc(t.desc)}</option>`).join("")}</select></div>
+    <div id="nfields"></div>
+    <div class="field"><label><input type="checkbox" id="ngacha" style="width:auto"> 同时加进抽卡池</label>
+      <select id="npool" style="margin-top:6px">${(e.pools||[]).map((p,i)=>`<option value="${i}">${esc(p)}</option>`).join("")}</select></div>
+    <div class="sticky">
+      <button onclick="doNewEntry(true)">预演（不写入）</button>
+      <button class="primary" style="flex:1" onclick="doNewEntry(false)">创建</button>
+    </div>`;
+  $("nform").innerHTML = h;
+  renderFieldTable();
+  neRenderChrome();
+  neRenderCmp();
+}
+function kindPrefix(kind){ return {morty:"Morty", item:"Item", attack:"Attack"}[kind] || "New"; }
+function renderFieldTable(){
+  const e=S.entries; if(!e) return;
+  const t=e.tables[+$("ntable").value];
+  $("nfields").innerHTML = (t.fields||[]).map(f=>{
+    const label = `${f.common?"★ ":""}${esc(f.label)}`;
+    const en = `<span class="en">${esc(f.name)}</span>`;
+    const help = f.help?`<div class="muted" style="font-size:11.5px">${esc(f.help)}</div>`:"";
+    let ctl;
+    const vals=Object.keys(f.values||{});
+    if(vals.length){
+      const cur = vals.includes(f.value)? f.value : vals[0];
+      ctl = `<select data-f="${esc(f.name)}">${vals.map(v=>`<option value="${esc(v)}" ${v===cur?"selected":""}>${esc(v||"(空)")}　${esc(f.values[v])}</option>`).join("")}</select>`;
+    } else {
+      ctl = `<input data-f="${esc(f.name)}" value="${esc(f.value)}" ${f.auto?"placeholder='（自动算）'":""}>`;
+    }
+    return `<div class="field"><label>${label} ${en}</label>${help}${ctl}</div>`;
+  }).join("");
+}
+
+// ---- 图鉴（图形化）--------------------------------------------------------
+const GAL_FRAMES = [["Front","正面"],["Back","背面"],["Icon","图标"],
+  ["Down_1","朝下1"],["Down_2","朝下2"],["Down_3","朝下3"],["Down_4","朝下4"],
+  ["Side_1","朝侧1"],["Side_2","朝侧2"],["Side_3","朝侧3"],["Side_4","朝侧4"],
+  ["Up_1","朝上1"],["Up_2","朝上2"],["Up_3","朝上3"],["Up_4","朝上4"]];
+let GAL = {ids:[], names:{}, cur:"", info:null};
+async function loadGallery(){
+  const e = await api("/api/entries?kind=morty");
+  GAL.ids = e.ids||[]; GAL.names = e.names||{};
+  renderGalList();
+}
+function renderGalList(){
+  const f = ($("galf").value||"").trim().toLowerCase();
+  const ids = GAL.ids.filter(i=>!f || i.toLowerCase().includes(f) || (GAL.names[i]||"").toLowerCase().includes(f));
+  $("galcount").textContent = ids.length;
+  $("galclone").innerHTML = ids.slice(0,300).map(i=>
+    `<option value="${esc(i)}" ${i===GAL.cur?"selected":""}>${GAL.names[i]?esc(GAL.names[i])+" · ":""}${esc(i)}</option>`).join("")
+    || '<option value="">（没有匹配）</option>';
+  if(!GAL.cur && ids.length){ GAL.cur = ids[0]; $("galclone").value = GAL.cur; renderGallery(); }
+}
+async function renderGallery(){
+  const id = $("galclone").value; if(!id) return;
+  GAL.cur = id;
+  await run(async()=>{
+    GAL.info = await api("/api/gallery?morty="+encodeURIComponent(id));
+    drawGallery();
+  }, "读取图鉴…");
+}
+function drawGallery(){
+  const g = GAL.info; if(!g || !g.ok){ $("galview").innerHTML = `<div class="muted">${esc((g&&g.message)||"读不到")}</div>`; return; }
+  const s = g.stats, lim = 200;
+  const bar = (zh,en,v)=>`<div class="sbar"><span>${zh}</span><span class="en">${en}</span>
+    <div class="track"><div class="fill" style="width:${Math.min(100,v/lim*100)}%"></div></div>
+    <span class="v">${v}</span></div>`;
+  const badge = (g.badge==null||g.badge===-1||g.badge==="-1") ? "无" : g.badge;
+  let h = `<div class="cmp" style="grid-template-columns:150px 1fr">
+    <div class="box b" style="text-align:center">
+      <img src="/api/gallery/art?morty=${encodeURIComponent(g.id)}&frame=Icon&max=140"
+           style="width:120px;height:120px;object-fit:contain;image-rendering:auto"
+           onerror="this.style.display='none'">
+    </div>
+    <div class="box a">
+      <div style="font-size:15px;font-weight:600">${esc(g.name||g.id)}</div>
+      <div class="latin">${esc(g.id)}</div>
+      <div class="muted" style="font-size:11.5px;margin-top:2px">美术包 ${esc(g.bundle||"—")} · assetid ${esc(g.assetid||"—")}</div>
+      ${bar("体力","HP",s.hp)}${bar("攻击","ATK",s.atk)}${bar("防御","DEF",s.def)}${bar("速度","SPD",s.spd)}
+      <div class="sbar"><span>总和</span><span class="en">TOTAL</span><span></span><span class="v">${s.total}</span></div>
+      <div class="muted" style="font-size:12px;margin-top:6px">
+        属性 ${esc(g.element_zh)} · 编号 ${esc(String(g.number))} · 档位 ${esc(String(g.division))} · 徽章需求 ${esc(String(badge))}
+        ${g.gacha?" · 可以抽到":" · 不在抽卡池"}
+        ${g.evolution?` · 进化 → ${esc(g.evolution)}`:""}
+      </div>
+    </div></div>`;
+  if(g.attacks && g.attacks.length){
+    h += `<div class="sec">▸ 技能（${g.attacks.length} 个）</div>`;
+    h += g.attacks.map(a=>`<div style="margin:3px 0;font-size:13px">
+      <span class="latin">${esc(a.id)}</span>
+      <span class="muted"> Lv${esc(a.level)}</span><br>
+      <span style="color:var(--green)">${esc(a.effect)}</span></div>`).join("");
+  }
+  if(g.frames && g.frames.length){
+    h += `<div class="sec">▸ 动作帧（${g.frames.length}/15）</div><div style="display:flex;flex-wrap:wrap;gap:8px">`;
+    h += GAL_FRAMES.filter(([f])=>g.frames.includes(f)).map(([f,zh])=>`
+      <div style="text-align:center">
+        <img src="/api/gallery/art?morty=${encodeURIComponent(g.id)}&frame=${f}&max=104"
+             style="width:78px;height:78px;object-fit:contain;background:var(--bg3);border-radius:7px"
+             onerror="this.style.opacity=.15">
+        <div class="muted" style="font-size:11px">${zh}</div>
+      </div>`).join("");
+    h += `</div>`;
+  }
+  $("galview").innerHTML = h;
+}
+
+async function doNewEntry(dry){
+  const e=S.entries;
+  const t=e.tables[+$("ntable").value];
+  const over={}; over[t.label]={};
+  document.querySelectorAll("#nfields [data-f]").forEach(el=>{ over[t.label][el.dataset.f]=el.value; });
+  // 滑条的值优先（用户刚拖过的话）
+  if(e.kind==="morty" && Object.keys(NE.stats).length){
+    NE.FIELDS.forEach(([k])=>{ if(NE.stats[k]!=null) over[t.label][k]=String(NE.stats[k]); });
+  }
+  const body = {
+    kind:e.kind, id:$("nid").value.trim(), from:$("nclone").value,
+    names:{ZH_CN:$("nzh").value.trim(), EN:($("nen").value||"").trim()},
+    descriptions:{ZH_CN:($("ndesc").value||"").trim(), EN:($("ndesc").value||"").trim()},
+    overrides:over,
+    assetid: $("nasset")? $("nasset").value : null,
+    add_to_gacha: $("ngacha").checked,
+    gacha_pool: +($("npool").value||0),
+    dry_run: !!dry,
+  };
+  const full = $("nfull") && $("nfull").checked && e.kind==="morty";
+  const url = full ? "/api/add-character" : "/api/new-entry";
+  if(full){ delete body.overrides; body.overrides=over; }
+  await run(async()=>{
+    const r = await api(url, body);
+    toast((r.ok?"✓ ":"✗ ")+r.message, 9000);
+    if(r.ok && !dry){ NE.stats={}; NE.base={}; await refresh(); }
+  }, dry?"预演中…":(full?"造美术 + 建包中…":"创建中…"));
+}
+
+/* ---------------- 导出 ---------------- */
+async function doExport(){
+  await run(async()=>{
+    const r = await api("/api/export", {mode:$("emode").value, out:$("eout").value.trim()});
+    toast("✓ "+r.message, 6000); await refresh();
+  }, "生成中…大包可能要一会");
+}
+async function doApk(){
+  await run(async()=>{
+    const r = await api("/api/apk", {src:$("apksrc").value.trim(), out:$("apkout").value.trim(), sign:$("apksign").checked});
+    toast("✓ "+r.message, 8000); await refresh();
+  }, "重打包+签名中…");
+}
+async function doResetAll(){
+  await run(async()=>{ await api("/api/reset-all", {}); toast("✓ 已清空"); await refresh(); }, "清空中…");
+}
+async function doClearLog(){ await api("/api/log/clear", {}); await refresh(); }
+
+/* ---------------- 启动 ---------------- */
+(async function(){
+  try{
+    const env = await api("/api/env");
+    $("plat").textContent = env.platform;
+    $("eout").placeholder = env.work + "/output";
+    const st = await api("/api/state");
+    S.state = st;
+    await refresh(); await loadEntries();
+    if((st.bundles||[]).length) go("bundles");
+  }catch(e){ toast("连不上服务："+e.message, 8000); }
+  setInterval(()=>{ if(!document.hidden) refresh().catch(()=>{}); }, 5000);
+})();
+</script>
+</body>
+</html>

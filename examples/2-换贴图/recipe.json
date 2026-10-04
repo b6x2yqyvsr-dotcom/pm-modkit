@@ -1,0 +1,13 @@
+{
+  "name": "换个莫蒂贴图",
+  "author": "示例",
+  "description": "把 anime101 里的 CharacterAnimeRickBack 换成一张自制图。edits/_模板-原图.png 是原图，尺寸 709x708，照着它画就行。",
+  "edits": [
+    {
+      "bundle": "anime101",
+      "asset": "CharacterAnimeRickBack",
+      "type": "Texture2D",
+      "file": "edits/替换图.png"
+    }
+  ]
+}

@@ -1,0 +1,170 @@
+name: 发版（打四端安装包）
+
+# 打 tag（v*）时自动跑：三个系统各打各的桌面版，再补上手机端的包，
+# 最后一起挂到 GitHub Release 上。
+#
+# 为什么必须三个系统各跑一台：PyInstaller **不能交叉编译** ——
+# 在 macOS 上打不出 Windows 的 exe，反过来也一样。
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "版本号（例如 v1.0.0）"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  desktop:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: Windows x64
+            asset: 口蘑Mod工坊-Windows.zip
+          - os: macos-14
+            label: macOS arm64
+            asset: 口蘑Mod工坊-macOS.zip
+          - os: ubuntu-22.04
+            label: Linux x64
+            asset: 口蘑Mod工坊-Linux.tar.gz
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 装 Linux 图形库
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libgl1 libglu1-mesa libx11-6 libxrandr2 libxinerama1 libxcursor1 \
+            libxi6 libxext6 libfontconfig1 libegl1 fonts-noto-cjk xvfb zip
+
+      - name: 装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: 打包
+        run: python build/build_app.py --keep-build
+
+      - name: 冒烟测试（Linux，无头跑几帧）
+        if: runner.os == 'Linux'
+        run: |
+          xvfb-run -a python - <<'PY'
+          import os, subprocess, sys
+          os.environ["PM_MODKIT_AUTOTEST"] = "6"
+          r = subprocess.run([sys.executable, "app/main.py"], timeout=180)
+          raise SystemExit(r.returncode)
+          PY
+
+      - name: 冒烟测试（打包后的网页版接口）
+        shell: bash
+        run: |
+          set -e
+          BIN="dist/口蘑Mod工坊/口蘑Mod工坊"
+          [ -x "$BIN.exe" ] && BIN="$BIN.exe"
+          "$BIN" --web --port 8799 &
+          SRV=$!
+          for i in $(seq 1 40); do
+            sleep 2
+            if curl -sf -o /dev/null "http://127.0.0.1:8799/manifest.webmanifest"; then break; fi
+          done
+          curl -sf -o /dev/null "http://127.0.0.1:8799/"
+          curl -sf -o /dev/null "http://127.0.0.1:8799/manifest.webmanifest"
+          curl -sf -o /dev/null "http://127.0.0.1:8799/sw.js"
+          echo "打包后的产物能起服务 ✓"
+          kill $SRV || true
+
+      - name: 压成 zip
+        if: runner.os != 'Linux'
+        shell: bash
+        run: |
+          cd dist
+          if [ -d "口蘑Mod工坊.app" ]; then
+            zip -qry "${{ matrix.asset }}" "口蘑Mod工坊.app"
+          else
+            zip -qr "${{ matrix.asset }}" "口蘑Mod工坊"
+          fi
+
+      - name: 压成 tar.gz（Linux 保留可执行位）
+        if: runner.os == 'Linux'
+        run: tar -C dist -czf "dist/${{ matrix.asset }}" 口蘑Mod工坊
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ runner.os }}
+          path: dist/${{ matrix.asset }}
+          if-no-files-found: error
+
+  mobile:
+    name: 手机端（Android / iOS）
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 打手机端包
+        run: python tools/package_mobile.py -o dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mobile
+          path: dist/口蘑Mod工坊-*.zip
+          if-no-files-found: error
+
+  release:
+    name: 挂到 Release
+    needs: [desktop, mobile]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+
+      - name: 列一下都收到什么
+        run: ls -la assets
+
+      - name: 建 Release 并上传
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          cat > notes.md <<'MD'
+          ## 四个设备的安装包
+
+          | 下载 | 怎么装 |
+          |---|---|
+          | **口蘑Mod工坊-macOS.zip** | 解压，把 `口蘑Mod工坊.app` 拖进「应用程序」。首次打开被 Gatekeeper 拦就右键 → 打开 |
+          | **口蘑Mod工坊-Windows.zip** | 解压，双击 `口蘑Mod工坊.exe`。免安装，整个文件夹一起拷走即可 |
+          | **口蘑Mod工坊-Android.zip** | 用 Termux，照包里的「安卓安装说明.md」走；装完可以「添加到主屏幕」当 App |
+          | **口蘑Mod工坊-iOS.zip** | 在电脑上双击「启动服务.command / .bat」，iPhone 用 Safari 连过去，再「添加到主屏幕」 |
+
+          > 手机端走的是**网页版**：这个工具的核心是 Python + UnityPy，解包要用
+          > `lz4` / `brotli` / `texture2ddecoder` / `astc_encoder` / `etcpak` / `fmod_toolkit`
+          > 这些原生扩展，它们没有 Android / iOS 轮子。所以 Android 把后端装在 Termux 里，
+          > iOS 把后端放在电脑上、手机当终端。**四端功能一致**，只有「重打包 APK」
+          > 需要 JDK + Android build-tools，手机上做不了（会自动退到 UnityCache / .pmmod 路线）。
+
+          **首次打开 macOS 版被拦**：`xattr -dr com.apple.quarantine 口蘑Mod工坊.app`
+          MD
+          gh release create "$TAG" assets/* \
+            --title "口蘑 Mod 工坊 $TAG" \
+            --notes-file notes.md \
+            --verify-tag 2>/dev/null || \
+          gh release create "$TAG" assets/* \
+            --title "口蘑 Mod 工坊 $TAG" \
+            --notes-file notes.md

@@ -1,0 +1,13 @@
+{
+  "name": "抽卡保底",
+  "author": "示例",
+  "description": "把抽卡掉率全压到第一档（100/0/0/0），并关掉促销概率。改的是 appdata/GachaDefault。",
+  "edits": [
+    {
+      "bundle": "appdata",
+      "asset": "GachaDefault",
+      "type": "TextAsset",
+      "file": "edits/GachaDefault.json"
+    }
+  ]
+}

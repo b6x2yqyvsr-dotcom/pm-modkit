@@ -1,0 +1,86 @@
+name: 冒烟测试（三平台）
+
+# PyInstaller 不能交叉编译，所以三个系统各跑一台机器。
+# 这里只做**冒烟测试**（确认三个系统都能打包、能启动）。
+# 真正发版走 release.yml。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - "modkit/**"
+      - "app/**"
+      - "web/**"
+      - "build/**"
+      - "tools/**"
+      - ".github/workflows/build.yml"
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: Windows x64
+            artifact: pm-modkit-windows
+            out: dist/口蘑Mod工坊
+          - os: ubuntu-22.04
+            label: Linux x64
+            artifact: pm-modkit-linux
+            out: dist/口蘑Mod工坊
+          - os: macos-14
+            label: macOS arm64
+            artifact: pm-modkit-macos
+            out: dist/口蘑Mod工坊.app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Linux 上跑图形界面需要这些系统库（GLFW / OpenGL / 字体）
+      - name: 装 Linux 图形库
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libgl1 libglu1-mesa libx11-6 libxrandr2 libxinerama1 libxcursor1 \
+            libxi6 libxext6 libfontconfig1 libegl1 fonts-noto-cjk xvfb
+
+      - name: 装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: 打包
+        run: python build/build_app.py
+
+      - name: 冒烟测试（Linux，无头）
+        if: runner.os == 'Linux'
+        run: |
+          # 用 xvfb 起个虚拟屏，跑几帧确认能启动
+          xvfb-run -a python - <<'PY'
+          import os, sys, subprocess
+          os.environ["PM_MODKIT_AUTOTEST"] = "6"
+          r = subprocess.run([sys.executable, "app/main.py"], timeout=120)
+          print("退出码", r.returncode)
+          raise SystemExit(r.returncode)
+          PY
+
+      - name: 冒烟测试（Windows/macOS，跑自检）
+        if: runner.os != 'Linux'
+        run: python tools/selftest.py --help
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.out }}
+          if-no-files-found: error
+          retention-days: 30

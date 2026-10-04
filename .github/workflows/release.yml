@@ -96,13 +96,32 @@ jobs:
       - name: 压成 zip
         if: runner.os != 'Linux'
         shell: bash
+        env:
+          ASSET: ${{ matrix.asset }}
         run: |
-          cd dist
-          if [ -d "口蘑Mod工坊.app" ]; then
-            zip -qry "${{ matrix.asset }}" "口蘑Mod工坊.app"
-          else
-            zip -qr "${{ matrix.asset }}" "口蘑Mod工坊"
-          fi
+          # 用 Python 打包而不是 zip 命令 —— GitHub 的 Windows runner 上
+          # 没有 zip 这个命令（踩过一次）。顺便设好 UTF-8 标志，
+          # 不然中文文件名解压出来是乱码。
+          python - <<'PY'
+          import os, zipfile, pathlib
+          dist = pathlib.Path("dist")
+          target = dist / (dist / "口蘑Mod工坊.app" if (dist / "口蘑Mod工坊.app").is_dir()
+                           else dist / "口蘑Mod工坊")
+          out = dist / os.environ["ASSET"]
+          if out.exists():
+              out.unlink()
+          with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+              for p in sorted(target.rglob("*")):
+                  if not p.is_file():
+                      continue
+                  zi = zipfile.ZipInfo(str(p.relative_to(dist)).replace(os.sep, "/"),
+                                       date_time=(2026, 1, 1, 0, 0, 0))
+                  zi.compress_type = zipfile.ZIP_DEFLATED
+                  zi.flag_bits |= 0x800
+                  zi.external_attr = (0o755 if os.access(p, os.X_OK) else 0o644) << 16
+                  z.writestr(zi, p.read_bytes())
+          print(f"  {out}  {out.stat().st_size / 1048576:.1f} MB")
+          PY
 
       - name: 压成 tar.gz（Linux 保留可执行位）
         if: runner.os == 'Linux'

@@ -41,8 +41,7 @@ GUI 能做的事这里都能做，方便批处理和复现。
 from __future__ import annotations
 
 def _force_utf8() -> None:
-    """Windows 控制台默认不是 UTF-8，``print`` 中文会直接抛 UnicodeEncodeError。
-    所有入口脚本开头都调一下这个。"""
+    """Windows 控制台默认 cp1252/cp936，print 中文会 UnicodeEncodeError。"""
     import sys
     for stream in (sys.stdout, sys.stderr):
         try:
@@ -52,6 +51,7 @@ def _force_utf8() -> None:
 
 
 _force_utf8()
+
 
 import argparse
 import json

@@ -23,6 +23,20 @@ Windows(x64/arm64)、Linux(manylinux/musllinux, x64/aarch64)、macOS(arm64)。
 
 from __future__ import annotations
 
+def _force_utf8() -> None:
+    """Windows 控制台默认 cp1252/cp936，print 中文会 UnicodeEncodeError。"""
+    import sys
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        except Exception:  # noqa: BLE001
+            pass
+
+
+_force_utf8()
+
+
+
 import argparse
 import io
 import json

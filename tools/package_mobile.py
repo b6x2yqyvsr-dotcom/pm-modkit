@@ -17,6 +17,19 @@
     python3 tools/package_mobile.py -o dist
 """
 
+def _force_utf8() -> None:
+    """Windows 控制台默认不是 UTF-8，``print`` 中文会直接抛 UnicodeEncodeError。
+    所有入口脚本开头都调一下这个。"""
+    import sys
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        except Exception:  # noqa: BLE001
+            pass
+
+
+_force_utf8()
+
 from __future__ import annotations
 
 import argparse

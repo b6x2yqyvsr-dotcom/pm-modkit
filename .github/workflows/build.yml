@@ -4,6 +4,11 @@ name: 冒烟测试（三平台）
 # 这里只做**冒烟测试**（确认三个系统都能打包、能启动）。
 # 真正发版走 release.yml。
 
+env:
+  # Windows 控制台默认不是 UTF-8，脚本里 print 中文会 UnicodeEncodeError
+  PYTHONIOENCODING: utf-8
+  PYTHONUTF8: "1"
+
 on:
   workflow_dispatch:
   push:

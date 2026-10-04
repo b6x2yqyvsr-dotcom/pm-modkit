@@ -6,6 +6,14 @@ name: 发版（打四端安装包）
 # 为什么必须三个系统各跑一台：PyInstaller **不能交叉编译** ——
 # 在 macOS 上打不出 Windows 的 exe，反过来也一样。
 
+env:
+  # Windows 控制台默认不是 UTF-8，脚本里 print 中文会 UnicodeEncodeError
+  PYTHONIOENCODING: utf-8
+  PYTHONUTF8: "1"
+
+permissions:
+  contents: write
+
 on:
   push:
     tags: ["v*"]
@@ -14,9 +22,6 @@ on:
       tag:
         description: "版本号（例如 v1.0.0）"
         required: true
-
-permissions:
-  contents: write
 
 jobs:
   desktop:

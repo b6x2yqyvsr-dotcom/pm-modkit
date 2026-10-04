@@ -154,6 +154,9 @@ jobs:
     needs: [desktop, mobile]
     runs-on: ubuntu-22.04
     steps:
+      # gh release create 要在 git 仓库里跑，这个 job 没 checkout 过
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: assets

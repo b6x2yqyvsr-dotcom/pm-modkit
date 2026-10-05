@@ -112,6 +112,10 @@ def _badge(text: str, col) -> None:
 #
 # 拿到路径后**不能当场加**：GLFW 回调是在事件循环里同步调的，此时 ImGui 正处在
 # 一帧中间，动状态容易出事。所以先塞进队列，下一帧再处理。
+#: 任何一个是 1 就说明「在截图模式」，别打开会挡住画面的窗口
+SHOT_ENVS = ("PM_MODKIT_SHOT", "PM_MODKIT_SHOT_APK", "PM_MODKIT_SHOT_CHECK",
+             "PM_MODKIT_SHOT_NE", "PM_MODKIT_SHOT_GAL", "PM_MODKIT_SHOT_STORY")
+
 DROP_QUEUE: list[str] = []
 _DROP_CB = None          # 必须保住引用，否则回调会被 GC 掉、直接段错误
 
@@ -331,6 +335,8 @@ class ModkitApp:
         self.show_check = False
         self.show_gallery = False
         self._gal_reset()
+        self.show_story = False
+        self._st_reset()
         self.show_text_editor = False
         self.text_buf = ""
         self.text_edit_target: tuple[str, int] | None = None
@@ -509,6 +515,8 @@ class ModkitApp:
             self._draw_check()
         if self.show_gallery:
             self._draw_gallery()
+        if self.show_story:
+            self._draw_story()
         if self.show_text_editor:
             self._draw_text_editor()
 
@@ -593,6 +601,11 @@ class ModkitApp:
         _tip("不替换现有的源，往后面加。\n一次只选一个也没关系，可以分多次加齐")
         imgui.same_line()
         imgui.begin_disabled(self.sess.source is None)
+        if imgui.button("剧情"):
+            self.show_story = True
+            self._st_reset()
+        _tip("单人剧情编辑器：任务对白、对战训练师、我方皮肤、地图")
+        imgui.same_line()
         if imgui.button("图鉴"):
             self.show_gallery = True
             self._gal_reset()
@@ -1425,6 +1438,35 @@ class ModkitApp:
                 n = sum(len(v) for v in self.ne_table_fields.values())
                 print(f"[自检] 新增条目向导：{len(self.ne_table_fields)} 张表 / {n} 个字段，默认 ID={self.ne_id}",
                       flush=True)
+            elif f == 19:
+                # 剧情编辑器：五个页签都要能读出来
+                from modkit import story as ST
+
+                self.show_story = True
+                self._st_reset()
+                for tab in ("quest", "trainer", "npc", "avatar", "world"):
+                    self.st_tab = tab
+                    rows = self._st_rows()
+                    assert rows, f"剧情编辑器「{tab}」页签读不到条目"
+                    self.st_sel = rows[0]["id"]
+                    self.st_loaded = ""
+                    self._st_load()
+                    assert self.st_fields, f"「{tab}」读不到文本字段"
+                self.st_tab = "trainer"
+                tr = next((r for r in self._st_overview().trainers if r["team_n"]), None)
+                if tr:
+                    self.st_sel = tr["id"]
+                    self.st_loaded = ""
+                    self._st_load()
+                    assert self.st_team, "训练师队伍没解析出来"
+                    print(f"[自检] 剧情：{self._st_overview().counts()}，"
+                          f"队伍样例 {tr['id']} → {len(self.st_team)} 只", flush=True)
+                else:
+                    print(f"[自检] 剧情：{self._st_overview().counts()}", flush=True)
+                self.st_tab = "quest"
+                self.st_sel = self._st_overview().quests[0]["id"]
+                self.st_loaded = ""
+                self._st_load()
             elif f == 20:
                 # 模拟拖放：往队列里塞两个包，下一帧应该被消费掉
                 DROP_QUEUE.extend([self.initial_paths[0], self.initial_paths[-1]])
@@ -1446,10 +1488,26 @@ class ModkitApp:
                       f"（{info['assetid']} @ {info['bundle']}）", flush=True)
             elif f == 22:
                 self.show_field_help = False
+                if os.environ.get("PM_MODKIT_SHOT_STORY") == "1":
+                    self.show_export = False
+                    self.show_gallery = False
+                    self.show_check = False
+                    self.show_field_help = False
+                    self.show_new_entry = False
+                    self.show_story = True
+                    _tb = os.environ.get("PM_MODKIT_ST_TAB")
+                    if _tb:
+                        self.st_tab = _tb
+                        rows = self._st_rows()
+                        if rows:
+                            self.st_sel = rows[0]["id"]
+                            self.st_loaded = ""
+                            self._st_load()
+                    return
                 if os.environ.get("PM_MODKIT_SHOT_GAL") == "1":
                     self.show_export = False
                     return
-                if os.environ.get("PM_MODKIT_SHOT_NE") == "1":
+                if os.environ.get("PM_MODKIT_SHOT_NE") == "1" and not os.environ.get("PM_MODKIT_SHOT_STORY"):
                     # 要截「新增条目」的图，别关它；顺便把图鉴收起来
                     self.show_export = False
                     self.show_gallery = False
@@ -1488,9 +1546,7 @@ class ModkitApp:
                     self.show_export = True
                     self.export_tab = "apk"
             elif f == 25:
-                if any(os.environ.get(k) == "1" for k in (
-                        "PM_MODKIT_SHOT_APK", "PM_MODKIT_SHOT_CHECK", "PM_MODKIT_SHOT_NE",
-                        "PM_MODKIT_SHOT_GAL")):
+                if any(os.environ.get(k) == "1" for k in SHOT_ENVS):
                     return
                 self.show_new_entry = False
                 self.show_field_help = True
@@ -2129,6 +2185,413 @@ class ModkitApp:
         if imgui.button("关闭"):
             self.show_new_entry = False
         imgui.end()
+
+    # ------------------------------------------------------------ 剧情编辑器
+    #
+    # 单人剧情拆在**两个地方**：spdata 的表（任务/训练师/地图的数据）
+    # 和 text/<语言> 的段（对白文本）。这个窗口把两边并到一起改。
+
+    STORY_TABS = [
+        ("quest", "剧情任务", "QUESTS"),
+        ("trainer", "对战训练师", "TRAINERS"),
+        ("npc", "NPC 对白", "NPC"),
+        ("avatar", "我方皮肤", "SKINS"),
+        ("world", "地图", "MAPS"),
+    ]
+
+    def _st_reset(self) -> None:
+        self.st_tab = "quest"
+        self.st_lang = "ZH_CN"
+        self.st_sel = ""
+        self.st_filter = ""
+        self.st_loaded = ""
+        self.st_fields = {}
+        self.st_team = []
+        self.st_msg = ""
+        self.st_ov = None
+        self.st_new_id = ""
+        self.st_all_langs = False
+        self._st_img = None
+
+    def _st_overview(self):
+        from modkit import story as ST
+
+        if self.st_ov is None:
+            self.st_ov = ST.overview(self.sess, self.st_lang)
+        return self.st_ov
+
+    def _st_rows(self) -> list[dict]:
+        ov = self._st_overview()
+        return {
+            "quest": ov.quests, "trainer": ov.trainers, "npc": ov.npcs,
+            "avatar": ov.avatars, "world": ov.worlds,
+        }.get(self.st_tab, [])
+
+    def _st_load(self) -> None:
+        """把选中的那条读进编辑缓冲。"""
+        from modkit import story as ST
+
+        if self.st_loaded == f"{self.st_tab}:{self.st_sel}":
+            return
+        self.st_loaded = f"{self.st_tab}:{self.st_sel}"
+        self.st_fields = {}
+        self.st_team = []
+        self._st_img = None
+        if not self.st_sel:
+            return
+
+        sec_key = {"quest": "Quest", "trainer": "Trainer", "npc": "NPC",
+                   "avatar": "PlayerAvatar", "world": "Dimensions"}[self.st_tab]
+        sec = ST.SECTION_BY_KEY[sec_key]
+        tx = ST.read_texts(self.sess, self.st_lang).get(sec_key) or {}
+        row = tx.get(self.st_sel) or {}
+        for f, _zh in sec.fields:
+            self.st_fields[f] = str(row.get(f, "") or "")
+
+        tbl = {"quest": "QuestInfo", "trainer": "TrainerInfo", "npc": "NPCInfo",
+               "avatar": "PlayerAvatarInfo", "world": "WorldInfo"}[self.st_tab]
+        data = ST.read_table(self.sess, tbl).get(self.st_sel) or {}
+        self.st_table = data
+        if self.st_tab == "trainer":
+            self.st_team = ST.parse_team(data.get("morties") or "")
+        if self.st_tab == "avatar":
+            self._st_img = self._st_avatar_img(data.get("assetid") or "")
+
+    def _st_avatar_img(self, avatar_asset: str):
+        """我方皮肤的形象图（包里的 CharacterXxx 贴图）。"""
+        from modkit import entries as E
+
+        try:
+            b = self.sess.bundle("appdata", eager=True)
+            e = next((a for a in b.assets if a.name == "BundleAssetAssignment"), None)
+            if e is None:
+                return None
+            baa = json.loads(b.preview_text(e))
+            bundle = str((baa.get(avatar_asset) or {}).get("version") or "")
+            if not bundle:
+                return None
+            ab = self.sess.bundle(bundle, eager=True)
+            hit = next((a for a in ab.assets
+                        if a.type == "Texture2D" and a.name == f"{avatar_asset}Front"), None)
+            if hit is None:
+                return None
+            img = ab.preview_image(hit)
+            if img is None:
+                return None
+            r = min(1.0, 110.0 / max(img.size))
+            if r < 1.0:
+                img = img.resize((max(1, int(img.width * r)), max(1, int(img.height * r))),
+                                 Image.LANCZOS)
+            return np.ascontiguousarray(np.array(img.convert("RGBA")))
+        except Exception:  # noqa: BLE001
+            return None
+
+    def _st_apply(self) -> str:
+        from modkit import story as ST
+
+        if not self.st_sel:
+            return "✗ 先选一条"
+        sec_key = {"quest": "Quest", "trainer": "Trainer", "npc": "NPC",
+                   "avatar": "PlayerAvatar", "world": "Dimensions"}[self.st_tab]
+        langs = ST.LANGS if self.st_all_langs else [self.st_lang]
+        lines: list[str] = []
+        try:
+            done = ST.set_texts(self.sess, sec_key, self.st_sel, self.st_fields, langs)
+            lines.append(f"✓ 文本：{'、'.join(done) if done else '没有变化'}")
+        except Exception as exc:  # noqa: BLE001
+            return f"✗ 文本写入失败：{exc}"
+
+        # 表格那边：训练师的队伍、皮肤的字段
+        try:
+            if self.st_tab == "trainer":
+                lines.append("✓ " + ST.set_table_row(
+                    self.sess, "TrainerInfo", self.st_sel,
+                    {"morties": ST.format_team(self.st_team)}))
+            elif self.st_tab == "avatar":
+                lines.append("✓ " + ST.set_table_row(
+                    self.sess, "PlayerAvatarInfo", self.st_sel,
+                    {k: self.st_table.get(k, "") for k in
+                     ("assetid", "category", "cost", "currency", "displayorder")}))
+            elif self.st_tab == "world":
+                lines.append("✓ " + ST.set_table_row(
+                    self.sess, "WorldInfo", self.st_sel,
+                    {k: self.st_table.get(k, "") for k in
+                     ("materialid", "segmentwidth", "segmentdepth", "nodesetids")}))
+        except Exception as exc:  # noqa: BLE001
+            lines.append(f"⚠ 表格写入失败：{exc}")
+        self._text_cache.clear()
+        return "\n".join(lines)
+
+    def _st_new(self) -> str:
+        from modkit import story as ST
+
+        nid = (self.st_new_id or "").strip()
+        if not nid or not self.st_sel:
+            return "✗ 填个新 ID，并先选一个克隆源"
+        sec_key = {"quest": "Quest", "trainer": "Trainer", "npc": "NPC",
+                   "avatar": "PlayerAvatar", "world": "Dimensions"}[self.st_tab]
+        try:
+            done = ST.add_entry(self.sess, sec_key, nid, self.st_sel)
+        except Exception as exc:  # noqa: BLE001
+            return f"✗ {exc}"
+        self.st_ov = None
+        self.st_sel = nid
+        self.st_loaded = ""
+        return "✓ 新建：" + "；".join(done)
+
+    # ------------------------------------------------------------ 绘制
+
+    def _draw_story(self) -> None:
+        vp = imgui.get_main_viewport()
+        _center_next_window(imgui.ImVec2(min(1120.0, vp.work_size.x - 60),
+                                         min(880.0, vp.work_size.y - 60)))
+        opened, self.show_story = imgui.begin("剧情编辑器", self.show_story)
+        if not opened:
+            imgui.end()
+            return
+        if self.sess.source is None:
+            _text_colored(WARN, "先打开数据源。")
+            imgui.end()
+            return
+        from modkit import story as ST
+
+        try:
+            ov = self._st_overview()
+        except Exception as exc:  # noqa: BLE001
+            _text_colored(WARN, f"读不到剧情数据：{exc}")
+            imgui.end()
+            return
+
+        # ---- 标题
+        _text_colored(YELLOW, "计划 03")
+        imgui.same_line()
+        _mono("· STORY EDITOR")
+        imgui.same_line(imgui.get_content_region_avail().x - 60)
+        _chip("进行中", YELLOW, filled=True)
+        imgui.text("单人剧情编辑器")
+        imgui.same_line()
+        _mono("  QUESTS · TRAINERS · SKINS · MAPS")
+        c = ov.counts()
+        _text_colored(DIM, "  ".join(f"{k} {v}" for k, v in c.items())
+                           + f"   文本语言：{ST.LANG_LABEL.get(self.st_lang, self.st_lang)}")
+        imgui.separator()
+
+        # ---- 页签
+        for i, (key, zh, en) in enumerate(self.STORY_TABS):
+            on = self.st_tab == key
+            if on:
+                imgui.push_style_color(imgui.Col_.button, (0.28, 0.24, 0.06, 1.0))
+                imgui.push_style_color(imgui.Col_.text, YELLOW)
+            if imgui.button(f"{zh}##sttab{key}"):
+                self.st_tab = key
+                self.st_sel = ""
+                self.st_loaded = ""
+            if on:
+                imgui.pop_style_color(2)
+            imgui.same_line()
+        imgui.set_next_item_width(150)
+        langs = list(ST.LANG_LABEL)
+        ci = langs.index(self.st_lang) if self.st_lang in langs else 0
+        ch, ci = imgui.combo("##stlang", ci, [ST.LANG_LABEL[x] for x in langs])
+        if ch:
+            self.st_lang = langs[ci]
+            self.st_ov = None
+            self.st_loaded = ""
+        _tip("改哪个语言的文本。上面「应用到全部语言」勾上就是 11 种一起写。")
+
+        body_h = max(240.0, min(600.0, imgui.get_content_region_avail().y - 150))
+        imgui.begin_child("##stbody", imgui.ImVec2(0, body_h), True)
+        tbl_flags = (imgui.TableFlags_.resizable | imgui.TableFlags_.sizing_stretch_prop
+                     | imgui.TableFlags_.no_saved_settings)
+        if imgui.begin_table("##stcols", 2, tbl_flags):
+            imgui.table_setup_column("列表", imgui.TableColumnFlags_.width_fixed, 300)
+            imgui.table_setup_column("编辑", imgui.TableColumnFlags_.width_stretch)
+
+            imgui.table_next_row()
+            imgui.table_set_column_index(0)
+            imgui.set_next_item_width(-1)
+            _, self.st_filter = imgui.input_text_with_hint(
+                "##stf", f"搜 id 或名字（{len(self._st_rows())} 条）", self.st_filter)
+            f = (self.st_filter or "").strip().lower()
+            rows = [r for r in self._st_rows()
+                    if not f or f in r["id"].lower() or f in (r.get("name") or "").lower()]
+            imgui.begin_child("##stlist", imgui.ImVec2(0, body_h - 60), True)
+            for i, r in enumerate(rows[:400]):
+                label = f"{r.get('name') or r['id']}##st{i}"
+                on = self.st_sel == r["id"]
+                if on:
+                    imgui.push_style_color(imgui.Col_.header, (0.28, 0.24, 0.06, 1.0))
+                if imgui.selectable(label, on, 0, imgui.ImVec2(0, 0))[0]:
+                    self.st_sel = r["id"]
+                if on:
+                    imgui.pop_style_color()
+                imgui.same_line()
+                _mono(r["id"])
+                if self.st_tab == "trainer" and r.get("team_n"):
+                    imgui.same_line(max(0.0, imgui.get_window_width() - 60))
+                    _text_colored(GREEN, f"{r['team_n']}只")
+                elif self.st_tab == "world" and r.get("w"):
+                    imgui.same_line(max(0.0, imgui.get_window_width() - 90))
+                    _text_colored(DIM, f"{r['w']}×{r['d']}")
+            imgui.end_child()
+
+            # ---- 右栏
+            imgui.table_set_column_index(1)
+            self._st_load()
+            if not self.st_sel:
+                _text_colored(DIM, "左边挑一条，这里改它的文本和数据。")
+            else:
+                self._draw_story_editor()
+            imgui.end_table()
+        imgui.end_child()
+
+        # ---- 底部
+        imgui.separator()
+        if imgui.button("应用", imgui.ImVec2(110, 0)):
+            self.st_msg = self._st_apply()
+        imgui.same_line()
+        _, self.st_all_langs = imgui.checkbox("应用到全部 11 种语言", self.st_all_langs)
+        imgui.same_line()
+        imgui.set_next_item_width(190)
+        _, self.st_new_id = imgui.input_text_with_hint("##stnew", "新 ID（克隆用）", self.st_new_id)
+        imgui.same_line()
+        if imgui.button("克隆一条"):
+            self.st_msg = self._st_new()
+        imgui.same_line()
+        if imgui.button("刷新"):
+            self.st_ov = None
+            self.st_loaded = ""
+            self.st_msg = "已刷新"
+        if self.st_msg:
+            for line in self.st_msg.split("\n"):
+                _text_colored(GREEN if line.startswith("✓") else
+                              (WARN if "✗" in line or "⚠" in line else DIM), "  " + line)
+        imgui.end()
+
+    def _st_row(self, table: str) -> dict:
+        return getattr(self, "st_table", {}) or {}
+
+    def _draw_story_editor(self) -> None:
+        from modkit import story as ST
+
+        sec_key = {"quest": "Quest", "trainer": "Trainer", "npc": "NPC",
+                   "avatar": "PlayerAvatar", "world": "Dimensions"}[self.st_tab]
+        sec = ST.SECTION_BY_KEY[sec_key]
+        row = self._st_row("")
+
+        imgui.text(f"{row.get('name') or self.st_sel}")
+        imgui.same_line()
+        _mono("  " + self.st_sel)
+
+        # 皮肤：左边放形象图
+        if self.st_tab == "avatar" and self._st_img is not None:
+            imgui.same_line()
+            h, w = self._st_img.shape[:2]
+            imgui.set_cursor_pos_x(max(0.0, imgui.get_window_width() - w - 20))
+            p = immvision.ImageParams()
+            p.image_display_size = (w, h)
+            p.show_options_button = False
+            p.show_options_panel = False
+            p.show_pixel_info = False
+            p.show_image_info = False
+            p.show_zoom_buttons = False
+            immvision.image("##stavatar", self._st_img, p)
+
+        imgui.separator()
+        _text_colored(YELLOW, f"▸ 文本（{ST.LANG_LABEL.get(self.st_lang, self.st_lang)}）")
+        for fname, zh in sec.fields:
+            multi = fname in ("description", "dialogue", "activedialogue",
+                              "rejectdialogue", "acceptdialogue", "completedialogue",
+                              "dialoguepostbattle")
+            imgui.text(zh)
+            imgui.same_line(96)
+            _mono(fname)
+            val = self.st_fields.get(fname, "")
+            imgui.set_next_item_width(-1)
+            if multi:
+                ch, v = imgui.input_text_multiline(f"##stf_{fname}", val, imgui.ImVec2(0, 52))
+            else:
+                ch, v = imgui.input_text(f"##stf_{fname}", val)
+            if ch:
+                self.st_fields[fname] = v
+            if not val.strip():
+                _text_colored(DIM, "  （空 —— 游戏里这段不显示）")
+
+        # ---- 数据表那部分
+        imgui.spacing()
+        if self.st_tab == "trainer":
+            self._draw_story_team()
+        elif self.st_tab in ("avatar", "world", "quest"):
+            self._draw_story_table_fields()
+
+    def _draw_story_team(self) -> None:
+        """对手队伍编辑器 —— 「对方皮肤」就是挑不同的莫蒂上场。"""
+        from modkit import entries as E
+        from modkit import story as ST
+
+        _text_colored(YELLOW, "▸ 出场队伍")
+        imgui.same_line()
+        _mono("  TEAM")
+        _text_colored(DIM, "  换一只莫蒂就是换形象；等级也在这里调")
+        if not self.st_team:
+            _text_colored(DIM, "  （空队伍 —— 这场可能不是莫蒂对战）")
+
+        try:
+            morties = E.list_ids(self.sess, "morty")
+        except Exception:  # noqa: BLE001
+            morties = []
+        loc = {}
+        try:
+            b = self.sess.bundle("text", eager=True)
+            e = next((a for a in b.assets if a.name == "ZH_CN"), None)
+            if e is not None:
+                loc = json.loads(b.preview_text(e)).get("Morty") or {}
+        except Exception:  # noqa: BLE001
+            pass
+
+        drop = None
+        for i, m in enumerate(self.st_team):
+            imgui.text(f"{i + 1}.")
+            imgui.same_line(34)
+            imgui.set_next_item_width(280)
+            cur = morties.index(m["id"]) if m["id"] in morties else 0
+            ch, ci = imgui.combo(f"##stm{i}", cur,
+                                 [f"{(loc.get(x) or x)} · {x}" for x in morties] or ["（读不到）"])
+            if ch and morties:
+                m["id"] = morties[ci]
+            imgui.same_line()
+            imgui.set_next_item_width(90)
+            cl, lv = imgui.input_int(f"##stlv{i}", int(m.get("level") or 1))
+            if cl:
+                m["level"] = max(1, lv)
+            imgui.same_line()
+            if imgui.small_button(f"×##stdel{i}"):
+                drop = i
+        if drop is not None:
+            self.st_team.pop(drop)
+        if imgui.small_button("+ 加一只"):
+            self.st_team.append({"id": morties[0] if morties else "", "level": 5})
+        imgui.same_line()
+        _text_colored(DIM, "队伍写法：" + (ST.format_team(self.st_team) or "（空）")[:60])
+
+    def _draw_story_table_fields(self) -> None:
+        from modkit import story as ST
+
+        table = {"quest": "QuestInfo", "avatar": "PlayerAvatarInfo",
+                 "world": "WorldInfo"}[self.st_tab]
+        _text_colored(YELLOW, "▸ 数据（spdata/" + table + "）")
+        data = self._st_row(table)
+        for k in sorted(data):
+            if k in ("id", "content", "morties", "items"):
+                continue
+            v = str(data.get(k, "") or "")
+            imgui.text(ST.field_label(table, k))
+            imgui.same_line(150)
+            _mono(k)
+            imgui.set_next_item_width(-1)
+            ch, nv = imgui.input_text(f"##stt_{k}", v)
+            if ch:
+                data[k] = nv
 
     # ------------------------------------------------------------ 角色图鉴（图形化）
     #

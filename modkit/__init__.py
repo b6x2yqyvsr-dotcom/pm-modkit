@@ -17,11 +17,12 @@
     validate.py   数据表体检：主键重复之类的「游戏进不去」问题
     character.py  完全新增角色：连自己的 15 帧美术一起造
     effects.py    技能效果的两种编码（单机字符串 / 联机 JSON）互转
+    story.py      单人剧情编辑器：任务对白 / 对战训练师 / 皮肤 / 地图
 """
 
 __version__ = "1.0.0"
 
-from . import paths, sysenv, source, bundle, assetops, modpack, apkbuild, session, entries, fields, validate, character, effects
+from . import paths, sysenv, source, bundle, assetops, modpack, apkbuild, session, entries, fields, validate, character, effects, story
 
 __all__ = [
     "paths",
@@ -37,5 +38,6 @@ __all__ = [
     "validate",
     "character",
     "effects",
+    "story",
     "__version__",
 ]

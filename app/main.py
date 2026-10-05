@@ -2450,7 +2450,7 @@ class ModkitApp:
         """
         dlg = pfd.open_file("批量选图（文件名里带帧名会自动对应）", None,
                             ["图片", "*.png *.jpg *.jpeg *.bmp *.webp"],
-                            pfd.opt.multiselect_files)
+                            pfd.opt.multiselect)
         files = list(dlg.result() or [])
         if not files:
             return
